@@ -13,8 +13,6 @@
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        .custom-checkbox { width: 1.25rem; height: 1.25rem; cursor: pointer; accent-color: #4f46e5; }
-
         .select-market { font-size: 0.75rem; padding: 0.1rem 0.25rem; border-radius: 0.25rem; border: 1px solid #cbd5e1; outline: none; background: white; cursor: pointer; width: 100%; text-align: center; }
         .select-pop { color: #b45309; }
         .select-dem { color: #047857; }
@@ -28,7 +26,7 @@
         <header class="mb-6 border-b pb-4 flex flex-col md:flex-row justify-between md:items-end gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île</h1>
-                <p class="text-slate-500">Planificateur Hebdomadaire & Dynamique du Marché</p>
+                <p class="text-slate-500">Planificateur Hebdomadaire & Dynamique du Marché pur</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
 
@@ -125,8 +123,8 @@
             <div class="mb-4 md:mb-0">
                 <h2 class="text-2xl font-bold text-slate-800 mb-2">Planificateur Hebdomadaire (Mercredi - Dimanche)</h2>
                 <ul class="text-slate-600 text-sm list-disc list-inside space-y-1">
-                    <li><span class="font-semibold text-emerald-600">Chaîne de Combo stricte :</span> Chaque recette (après la 1ère) DOIT déclencher le bonus x2.</li>
-                    <li><span class="font-semibold text-indigo-600">Dynamisme :</span> La baisse de la demande est simulée automatiquement de jour en jour.</li>
+                    <li><span class="font-semibold text-emerald-600">Loi du Marché :</span> Les doublons de recettes (ex: A ➔ B ➔ A) sont autorisés. Cependant, une sur-production fera s'effondrer la demande le lendemain !</li>
+                    <li><span class="font-semibold text-indigo-600">Chaîne de Combo :</span> Le bonus x2 est strictement exigé entre chaque recette.</li>
                 </ul>
 
                 <div class="mt-4 inline-block bg-orange-50 border border-orange-200 rounded p-2">
@@ -156,7 +154,7 @@
 </div>
 
 <script>
-    // Données complètes corrigées avec les vrais Rangs d'Île (lvl) au lieu des ID parasites
+    // Données complètes corrigées avec les vrais Rangs d'Île
     const rawData = [
         { lvl: 8, obj: "Anneau en quartz exotique", t: 6, val: 72, c1: "Accessoire", c2: "En céramique", exp: "Non", ing: "3 x Quartz insulaire | 3 x Minerai de fer insulaire | 2 x Pierre insulaire" },
         { lvl: 1, obj: "Bague en corail manufacturée", t: 6, val: 42, c1: "Accessoire", c2: "Marin", exp: "Non", ing: "3 x Corail insulaire | 3 x Sarment insulaire" },
@@ -462,7 +460,7 @@
     render(currentData);
 
     // ==========================================
-    // SOLVER HEBDOMADAIRE (Mercredi -> Dimanche)
+    // SOLVER HEBDOMADAIRE OPTIMISÉ (AVEC DOUBLONS)
     // ==========================================
     function calculateRealValue(item, demandLevel) {
         let m = marketData[item.id];
@@ -475,22 +473,31 @@
         saveToLocalStorage();
 
         const allowRare = document.getElementById('allowRareExp').checked;
-
-        // Le solveur prend ce qui est visible (déjà filtré par le Rang du joueur)
         const activeItems = currentData.filter(d => allowRare || d.exp === 'Non');
 
         if (activeItems.length === 0) {
-            alert("Aucune recette disponible avec les filtres actuels ou votre Rang d'Île.");
+            alert("Aucune recette disponible avec les filtres actuels.");
             return;
         }
 
         document.getElementById('solverResults').classList.remove('hidden');
         const grid = document.getElementById('weeklyGrid');
-        grid.innerHTML = '<div class="text-center p-8 text-indigo-600 font-bold animate-pulse">Calcul de la semaine en cours...</div>';
+        grid.innerHTML = '<div class="text-center p-8 text-indigo-600 font-bold animate-pulse">Calcul de la semaine en cours... (Cela peut prendre quelques secondes)</div>';
 
         setTimeout(() => {
             let dynamicDemands = {};
             data.forEach(d => dynamicDemands[d.id] = marketData[d.id].dem);
+
+            // Pré-calcul de la matrice d'adjacence pour booster le DFS
+            const adjacency = {};
+            activeItems.forEach(item1 => {
+                adjacency[item1.id] = activeItems.filter(item2 => {
+                    if (item1.id === item2.id) return false; // Pas le MEME objet à la suite
+                    const cats1 = [item1.c1, item1.c2].filter(Boolean);
+                    const cats2 = [item2.c1, item2.c2].filter(Boolean);
+                    return cats1.some(c => cats2.includes(c)); // Doit partager une catégorie
+                });
+            });
 
             const weekDays = ['Jour 1 (Mercredi)', 'Jour 2 (Jeudi)', 'Jour 3 (Vendredi)', 'Jour 4 (Samedi)', 'Jour 5 (Dimanche)'];
             let weeklyPlan = [];
@@ -499,18 +506,20 @@
             for (let dayIndex = 0; dayIndex < 5; dayIndex++) {
                 let bestSchedulesBySet = new Map();
 
-                dfsSchedulesDay([], 0, 0, activeItems, new Set(), bestSchedulesBySet, dynamicDemands);
+                dfsSchedulesDay([], 0, 0, activeItems, adjacency, bestSchedulesBySet, dynamicDemands);
+
                 let daySchedules = Array.from(bestSchedulesBySet.values());
-                let top3 = findTopDisjointSchedules(daySchedules);
+
+                // On prend simplement les 3 meilleurs (même s'ils se ressemblent)
+                let top3 = getTopSchedules(daySchedules, 3);
 
                 weeklyPlan.push({ dayName: weekDays[dayIndex], schedules: top3 });
 
-                // Baisse de la demande pour le jour suivant
+                // Baisse de la demande (Loi du marché).
+                // Si on fabrique 3 fois le même objet (sur 3 fabriques), la demande chute de -3.
                 top3.forEach(sched => {
                     sched.path.forEach(step => {
-                        if (dynamicDemands[step.item.id] > 0) {
-                            dynamicDemands[step.item.id] -= 1;
-                        }
+                        dynamicDemands[step.item.id] = Math.max(0, dynamicDemands[step.item.id] - 1);
                     });
                     totalWeeklyGain += sched.gain;
                 });
@@ -520,33 +529,26 @@
         }, 50);
     }
 
-    function dfsSchedulesDay(currentSeq, currentGain, currentTime, items, usedIds, bestSchedulesBySet, dynamicDemands) {
+    function dfsSchedulesDay(currentSeq, currentGain, currentTime, activeItems, adjacency, bestSchedulesBySet, dynamicDemands) {
         let canAddMore = false;
 
-        for (let i = 0; i < items.length; i++) {
-            let item = items[i];
-            if (usedIds.has(item.id)) continue;
+        // Récupère uniquement les objets valides pour faire un combo avec le précédent
+        let possibleItems = currentSeq.length === 0 ? activeItems : adjacency[currentSeq[currentSeq.length - 1].item.id];
+
+        for (let i = 0; i < possibleItems.length; i++) {
+            let item = possibleItems[i];
 
             if (currentTime + item.t <= 24) {
-                let isCombo = false;
-                if (currentSeq.length > 0) {
-                    let lastItem = currentSeq[currentSeq.length - 1].item;
-                    let cats1 = [lastItem.c1, lastItem.c2].filter(Boolean);
-                    let cats2 = [item.c1, item.c2].filter(Boolean);
-                    isCombo = cats1.some(c => cats2.includes(c));
-                    if (!isCombo) continue;
-                }
-
                 canAddMore = true;
+                let isCombo = currentSeq.length > 0; // Garanti par la matrice d'adjacence
+
                 let baseRealVal = calculateRealValue(item, dynamicDemands[item.id]);
                 let stepGain = isCombo ? baseRealVal * 2 : baseRealVal;
 
                 currentSeq.push({ item: item, combo: isCombo, stepGain: stepGain });
-                usedIds.add(item.id);
 
-                dfsSchedulesDay(currentSeq, currentGain + stepGain, currentTime + item.t, items, usedIds, bestSchedulesBySet, dynamicDemands);
+                dfsSchedulesDay(currentSeq, currentGain + stepGain, currentTime + item.t, activeItems, adjacency, bestSchedulesBySet, dynamicDemands);
 
-                usedIds.delete(item.id);
                 currentSeq.pop();
             }
         }
@@ -554,7 +556,8 @@
         if (!canAddMore && currentTime > 0) {
             const rem = 24 - currentTime;
             if (rem === 0 || rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0) {
-                const signature = Array.from(usedIds).sort((a, b) => a - b).join('-');
+                // La signature est l'ordre EXACT des objets (A-B-A est unique)
+                const signature = currentSeq.map(s => s.item.id).join('-');
                 let existing = bestSchedulesBySet.get(signature);
 
                 let eff = currentGain / currentTime;
@@ -572,24 +575,15 @@
         }
     }
 
-    function findTopDisjointSchedules(allSchedules, maxCount = 3) {
+    function getTopSchedules(allSchedules, count) {
+        // Tri par Efficacité > Gain > Temps
         let sorted = [...allSchedules].sort((a, b) => {
             if (b.eff !== a.eff) return b.eff - a.eff;
             if (b.time !== a.time) return b.time - a.time;
             return b.gain - a.gain;
         });
-
-        let result = [];
-        let globalUsedIds = new Set();
-
-        for (let s of sorted) {
-            if (!s.path.some(step => globalUsedIds.has(step.item.id))) {
-                result.push(s);
-                s.path.forEach(step => globalUsedIds.add(step.item.id));
-                if (result.length >= maxCount) break;
-            }
-        }
-        return result;
+        // Retourne simplement les N meilleurs, peu importe s'ils utilisent les mêmes objets
+        return sorted.slice(0, count);
     }
 
     function renderWeekly(weeklyPlan, totalGain) {
