@@ -127,15 +127,15 @@
     </div>
 
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-indigo-500">
-        <h2 class="text-2xl font-bold text-slate-800 mb-2">Simulateur de Planning Optimo (24h)</h2>
+        <h2 class="text-2xl font-bold text-slate-800 mb-2">Simulateur de Plannings Parfaits (24h)</h2>
         <ul class="text-slate-600 mb-4 text-sm list-disc list-inside space-y-1">
-            <li><span class="font-semibold text-emerald-600">Combinaisons Uniques :</span> Affiche uniquement le meilleur ordre (le plus rentable) pour un même groupe d'objets.</li>
-            <li><span class="font-semibold text-indigo-600">Efficacité (Gain/h) :</span> Permet de voir quels plannings rentabilisent le mieux le temps passé.</li>
+            <li><span class="font-semibold text-emerald-600">Chaîne de Combo stricte :</span> L'algorithme ne garde que les plannings où <span class="underline">chaque</span> objet (après le 1er) déclenche le bonus x2.</li>
+            <li><span class="font-semibold text-indigo-600">Combinaisons Uniques :</span> Affiche uniquement le meilleur ordre (le plus rentable) pour un même groupe d'objets.</li>
             <li>Le reste du temps journalier doit être utilisable (multiple de 4, 6 ou 8).</li>
         </ul>
 
         <button onclick="generateSchedules()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded shadow transition-colors">
-            Générer les enchaînements
+            Générer les Plannings Parfaits
         </button>
 
         <div id="solverResults" class="hidden mt-6 space-y-8">
@@ -151,13 +151,13 @@
 
             <div>
                 <div class="flex justify-between items-end mb-2">
-                    <h3 class="text-lg font-semibold text-slate-800">Toutes les combinaisons générées (<span id="scheduleCount">0</span>)</h3>
+                    <h3 class="text-lg font-semibold text-slate-800">Tous les plannings générés (<span id="scheduleCount">0</span>)</h3>
                 </div>
                 <div class="table-container border border-slate-200 rounded-md">
                     <table class="w-full text-left border-collapse whitespace-nowrap">
                         <thead class="bg-slate-100 sticky top-0 shadow-sm z-10">
                         <tr>
-                            <th class="p-3 border-b font-semibold text-slate-700">Enchaînement de la journée</th>
+                            <th class="p-3 border-b font-semibold text-slate-700">Détail du Planning Parfait</th>
                             <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-24 text-slate-700" onclick="sortSchedules('time')">Temps ↕</th>
                             <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-32 text-slate-700" onclick="sortSchedules('eff')">Gain/h ↕</th>
                             <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-32 text-slate-700" onclick="sortSchedules('gain')">Gain Total ↕</th>
@@ -362,7 +362,7 @@
     render(currentData);
 
     // ==========================================
-    // LOGIQUE DU SOLVER DE PLANNINGS
+    // LOGIQUE DU SOLVER DE PLANNINGS (COMBO STRICT)
     // ==========================================
     let schedules = [];
     let scheduleSortConfig = { key: 'eff', dir: -1 };
@@ -407,7 +407,7 @@
             if (usedIds.has(item.id)) continue;
 
             if (currentTime + item.t <= 24) {
-                canAddMore = true;
+
                 let isCombo = false;
 
                 if (currentSeq.length > 0) {
@@ -415,8 +415,12 @@
                     let cats1 = [lastItem.c1, lastItem.c2].filter(Boolean);
                     let cats2 = [item.c1, item.c2].filter(Boolean);
                     isCombo = cats1.some(c => cats2.includes(c));
+
+                    // RÈGLE STRICTE : Si ce n'est pas un combo, on arrête immédiatement cette branche
+                    if (!isCombo) continue;
                 }
 
+                canAddMore = true;
                 let stepGain = isCombo ? item.val * 2 : item.val;
 
                 currentSeq.push({ item: item, combo: isCombo, stepGain: stepGain });
@@ -429,9 +433,11 @@
             }
         }
 
+        // Si on ne peut plus rien ajouter, on vérifie la règle de fin de journée
         if (!canAddMore && currentTime > 0) {
             const rem = 24 - currentTime;
             if (rem === 0 || rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0) {
+                // Signature de la composition exacte
                 const signature = Array.from(usedIds).sort((a, b) => a - b).join('-');
                 if (!bestSchedulesBySet.has(signature) || bestSchedulesBySet.get(signature).gain < currentGain) {
                     bestSchedulesBySet.set(signature, {
@@ -445,9 +451,7 @@
         }
     }
 
-    // --- NOUVELLE FONCTION: TOP 3 INDÉPENDANTS ---
     function findTopDisjointSchedules(allSchedules, maxCount = 3) {
-        // Tri ultime pour le solver: 1. Eff, 2. Temps, 3. Gain
         let sorted = [...allSchedules].sort((a, b) => {
             if (b.eff !== a.eff) return b.eff - a.eff;
             if (b.time !== a.time) return b.time - a.time;
@@ -540,11 +544,11 @@
         const tbody = document.getElementById('scheduleBody');
 
         if (schedules.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-500">Aucun enchaînement valide trouvé.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-500">Aucun planning parfait trouvé. Essayez de sélectionner plus d\'objets partageant les mêmes catégories.</td></tr>';
             return;
         }
 
-        const maxDisplay = 100; // Limite l'affichage pour la perf
+        const maxDisplay = 100;
         const displaySchedules = schedules.slice(0, maxDisplay);
 
         tbody.innerHTML = displaySchedules.map(s => {
