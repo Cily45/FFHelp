@@ -13,8 +13,6 @@
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        .custom-checkbox { width: 1.25rem; height: 1.25rem; cursor: pointer; accent-color: #4f46e5; }
-
         .select-market { font-size: 0.75rem; padding: 0.1rem 0.25rem; border-radius: 0.25rem; border: 1px solid #cbd5e1; outline: none; background: white; cursor: pointer; width: 100%; text-align: center; }
         .select-pop { color: #b45309; }
         .select-dem { color: #047857; }
@@ -28,7 +26,7 @@
         <header class="mb-6 border-b pb-4 flex flex-col md:flex-row justify-between md:items-end gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île</h1>
-                <p class="text-slate-500">Planificateur Hebdomadaire & Dynamique du Marché pur</p>
+                <p class="text-slate-500">Planificateur Hebdomadaire & Algorithme de Marché Pur</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
 
@@ -123,8 +121,8 @@
             <div class="mb-4 md:mb-0">
                 <h2 class="text-2xl font-bold text-slate-800 mb-2">Planificateur Hebdomadaire (Mercredi - Dimanche)</h2>
                 <ul class="text-slate-600 text-sm list-disc list-inside space-y-1">
-                    <li><span class="font-semibold text-emerald-600">Loi du Marché :</span> Les doublons de recettes sont autorisés. Une sur-production fera s'effondrer la demande le lendemain !</li>
-                    <li><span class="font-semibold text-indigo-600">Chaîne de Combo :</span> Le bonus x2 est strictement exigé entre chaque recette.</li>
+                    <li><span class="font-semibold text-emerald-600">Capitalisme Pur :</span> L'algorithme assignera le meilleur planning du jour aux 3 Fabriques s'il est extrêmement rentable.</li>
+                    <li><span class="font-semibold text-indigo-600">Auto-Régulation :</span> L'effondrement de la demande est simulé rigoureusement. Fabriquer un objet en triple fera chuter sa demande de 3 crans pour le lendemain !</li>
                 </ul>
 
                 <div class="mt-4 inline-block bg-orange-50 border border-orange-200 rounded p-2">
@@ -154,7 +152,6 @@
 </div>
 
 <script>
-    // La base de données statique du jeu
     const rawData = [
         { lvl: 8, obj: "Anneau en quartz exotique", t: 6, val: 72, c1: "Accessoire", c2: "En céramique", exp: "Non", ing: "3 x Quartz insulaire | 3 x Minerai de fer insulaire | 2 x Pierre insulaire" },
         { lvl: 1, obj: "Bague en corail manufacturée", t: 6, val: 42, c1: "Accessoire", c2: "Marin", exp: "Non", ing: "3 x Corail insulaire | 3 x Sarment insulaire" },
@@ -239,7 +236,6 @@
         { lvl: 7, obj: "Vinaigrette manufacturée", t: 4, val: 52, c1: "Condiment", c2: "", exp: "Non", ing: "2 x Oignon exotique | 1 x Sève insulaire | 1 x Sargasse tamamo insulaire" }
     ];
 
-    // LOGIQUE DU MARCHÉ
     const POP_MULT = { 'Faible': 0.8, 'Moyenne': 1.0, 'Élevée': 1.2, 'Très élevée': 1.4 };
     const DEM_TIERS = ['Excédentaire', 'En surplus', 'Suffisante', 'Insuffisante', 'Introuvable'];
     const DEM_MULT = [0.6, 0.8, 1.0, 1.3, 1.6];
@@ -248,10 +244,8 @@
     let currentData = [...data];
     let marketData = {};
 
-    // Initialisation par défaut
     data.forEach(d => marketData[d.id] = { pop: 'Moyenne', dem: 2, evo: '-' });
 
-    // GESTION SAUVEGARDE LOCALE
     function saveRank() {
         localStorage.setItem('fabriqueRank', document.getElementById('userRank').value);
     }
@@ -281,40 +275,35 @@
     function clearLocalStorage() {
         if(confirm("Voulez-vous vraiment remettre tout le marché à l'état par défaut (Moyen/Suffisant) ? L'historique local sera effacé.")) {
             localStorage.removeItem('fabriqueSaveFinal');
-            localStorage.removeItem('lastRawJson'); // On clear aussi le cache du JSON
+            localStorage.removeItem('lastRawJson');
             location.reload();
         }
     }
 
     // ==========================================
-    // AUTO-SYNCHRONISATION AU CHARGEMENT (Nouveauté)
+    // AUTO-SYNCHRONISATION AU CHARGEMENT
     // ==========================================
     async function initMarketData() {
-        loadFromLocalStorage(); // Charge d'abord les éventuelles modifs manuelles
+        loadFromLocalStorage();
 
         try {
-            // On fetch en désactivant le cache pour toujours voir si un nouveau fichier est sur GitHub
             const response = await fetch('market_data.json', { cache: 'no-store' });
 
             if (response.ok) {
                 const newRawText = await response.text();
                 const oldRawText = localStorage.getItem('lastRawJson');
 
-                // Tentative de récupération de la date de modif depuis le serveur GitHub
                 let lastMod = response.headers.get('Last-Modified');
                 let dateStr = "Récemment";
                 if(lastMod) {
                     const d = new Date(lastMod);
                     dateStr = d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
                 } else {
-                    // Fallback si l'hébergeur bloque le header Last-Modified
                     const d = new Date();
                     dateStr = d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
                 }
 
                 if (newRawText !== oldRawText) {
-                    // NOUVEAU FICHIER DÉTECTÉ (C'est un nouveau mardi !)
-                    // On écrase les modifs manuelles avec la nouvelle vérité du serveur
                     const weeklyData = JSON.parse(newRawText);
                     data.forEach(item => {
                         const apiItem = weeklyData[item.obj];
@@ -329,13 +318,11 @@
                         }
                     });
 
-                    // On met à jour nos "points de repère" pour ne pas écraser la prochaine fois qu'on refresh
                     localStorage.setItem('lastRawJson', newRawText);
                     localStorage.setItem('lastUpdateDate', dateStr);
                     document.getElementById('lastUpdateText').textContent = dateStr;
                     saveToLocalStorage();
                 } else {
-                    // C'est la même semaine ! On ne fait rien, on garde les modifs manuelles chargées au début.
                     document.getElementById('lastUpdateText').textContent = localStorage.getItem('lastUpdateDate') || dateStr;
                 }
             } else {
@@ -346,11 +333,9 @@
             document.getElementById('lastUpdateText').textContent = "Mode Local (Aucun fichier)";
         }
 
-        // On lance l'affichage une fois tout calculé
         applyFilters();
     }
 
-    // GESTION DOM
     const tableBody = document.getElementById('tableBody');
     const countSpan = document.getElementById('count');
     const inputs = ['searchObj', 'searchIng', 'minV', 'maxV', 'filterExp', 'cat1', 'cat2', 'filterTime'].map(id => document.getElementById(id));
@@ -371,7 +356,7 @@
         if(type === 'pop') marketData[id].pop = val;
         if(type === 'dem') marketData[id].dem = parseInt(val);
         if(type === 'evo') marketData[id].evo = val;
-        saveToLocalStorage(); // On sauvegarde aussi les modifications manuelles de l'utilisateur
+        saveToLocalStorage();
     };
 
     function render(filteredData) {
@@ -442,7 +427,6 @@
         const op = document.querySelector('input[name="catOp"]:checked').value;
 
         currentData = data.filter(d => {
-            // FILTRE SUR LE RANG
             if (d.lvl > userRank) return false;
 
             if (sObj && !d.obj.toLowerCase().includes(sObj)) return false;
@@ -474,11 +458,10 @@
     inputs.forEach(input => { input.addEventListener('input', applyFilters); input.addEventListener('change', applyFilters); });
     radios.forEach(radio => radio.addEventListener('change', applyFilters));
 
-    // LANCEMENT DE LA LOGIQUE AU DEMARRAGE
     initMarketData();
 
     // ==========================================
-    // SOLVER HEBDOMADAIRE OPTIMISÉ
+    // SOLVER HEBDOMADAIRE (AVEC CHOIX DES FABRIQUES)
     // ==========================================
     function calculateRealValue(item, demandLevel) {
         let m = marketData[item.id];
@@ -506,7 +489,6 @@
             let dynamicDemands = {};
             data.forEach(d => dynamicDemands[d.id] = marketData[d.id].dem);
 
-            // Matrice d'adjacence pour booster la vitesse
             const adjacency = {};
             activeItems.forEach(item1 => {
                 adjacency[item1.id] = activeItems.filter(item2 => {
@@ -527,17 +509,20 @@
                 dfsSchedulesDay([], 0, 0, activeItems, adjacency, bestSchedulesBySet, dynamicDemands);
 
                 let daySchedules = Array.from(bestSchedulesBySet.values());
-                let top3 = getTopSchedules(daySchedules, 3);
+
+                // NOUVELLE LOGIQUE : Le meilleur planning est assigné aux 3 fabriques
+                let bestSchedule = daySchedules.sort((a, b) => b.gain - a.gain)[0];
+                let top3 = bestSchedule ? [bestSchedule, bestSchedule, bestSchedule] : [];
 
                 weeklyPlan.push({ dayName: weekDays[dayIndex], schedules: top3 });
 
-                // Baisse de la demande (Loi du marché)
-                top3.forEach(sched => {
-                    sched.path.forEach(step => {
-                        dynamicDemands[step.item.id] = Math.max(0, dynamicDemands[step.item.id] - 1);
+                // Baisse de la demande : Si cloné 3 fois, la demande baisse de 3 crans
+                if(bestSchedule) {
+                    bestSchedule.path.forEach(step => {
+                        dynamicDemands[step.item.id] = Math.max(0, dynamicDemands[step.item.id] - 3);
                     });
-                    totalWeeklyGain += sched.gain;
-                });
+                    totalWeeklyGain += (bestSchedule.gain * 3);
+                }
             }
 
             renderWeekly(weeklyPlan, totalWeeklyGain);
@@ -546,7 +531,6 @@
 
     function dfsSchedulesDay(currentSeq, currentGain, currentTime, activeItems, adjacency, bestSchedulesBySet, dynamicDemands) {
         let canAddMore = false;
-
         let possibleItems = currentSeq.length === 0 ? activeItems : adjacency[currentSeq[currentSeq.length - 1].item.id];
 
         for (let i = 0; i < possibleItems.length; i++) {
@@ -573,28 +557,16 @@
                 const signature = currentSeq.map(s => s.item.id).join('-');
                 let existing = bestSchedulesBySet.get(signature);
 
-                let eff = currentGain / currentTime;
-                let shouldUpdate = !existing || (eff > existing.eff) || (eff === existing.eff && currentGain > existing.gain);
-
-                if (shouldUpdate) {
+                if (!existing || currentGain > existing.gain) {
                     bestSchedulesBySet.set(signature, {
                         path: currentSeq.map(s => ({ item: s.item, combo: s.combo, stepGain: s.stepGain })),
                         gain: currentGain,
                         time: currentTime,
-                        eff: eff
+                        eff: currentGain / currentTime
                     });
                 }
             }
         }
-    }
-
-    function getTopSchedules(allSchedules, count) {
-        let sorted = [...allSchedules].sort((a, b) => {
-            if (b.eff !== a.eff) return b.eff - a.eff;
-            if (b.time !== a.time) return b.time - a.time;
-            return b.gain - a.gain;
-        });
-        return sorted.slice(0, count);
     }
 
     function renderWeekly(weeklyPlan, totalGain) {
@@ -637,7 +609,7 @@
                     `;
             }).join('');
 
-            let dayTotal = day.schedules.reduce((acc, curr) => acc + curr.gain, 0);
+            let dayTotal = day.schedules[0].gain * 3;
 
             return `
                     <div class="bg-white rounded-lg border border-slate-300 p-4 shadow-sm hover:shadow-md transition-shadow">
