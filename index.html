@@ -13,8 +13,6 @@
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        .custom-checkbox { width: 1.25rem; height: 1.25rem; cursor: pointer; accent-color: #4f46e5; }
-
         .select-market { font-size: 0.75rem; padding: 0.1rem 0.25rem; border-radius: 0.25rem; border: 1px solid #cbd5e1; outline: none; background: white; cursor: pointer; width: 100%; text-align: center; }
         .select-pop { color: #b45309; }
         .select-dem { color: #047857; }
@@ -33,13 +31,13 @@
             <div class="space-x-2">
                 <button onclick="clearLocalStorage()" class="text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded hover:bg-red-200 font-semibold transition">Vider la sauvegarde</button>
                 <span class="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded border border-blue-200">
-                        <span id="count">0</span> affiché(s)
+                        <span id="count">0</span> objet(s) affiché(s)
                     </span>
             </div>
         </header>
 
         <div class="bg-slate-100 p-4 rounded-md mb-6 border border-slate-200 text-sm">
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 <div class="space-y-2">
                     <label class="block font-semibold text-slate-700">Recherche textuelle</label>
                     <input type="text" id="searchObj" placeholder="Nom de l'objet..." class="w-full border rounded px-3 py-1.5 outline-none focus:border-indigo-500">
@@ -58,34 +56,28 @@
                     </div>
                 </div>
 
-                <div class="space-y-2 xl:col-span-2">
+                <div class="space-y-2 xl:col-span-1">
                     <label class="block font-semibold text-slate-700">Filtre de Catégories & Statut</label>
                     <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 items-start sm:items-center">
-                        <select id="cat1" class="border rounded px-3 py-1.5 outline-none focus:border-indigo-500 w-full sm:w-1/3"><option value="">-- Catégorie A --</option></select>
+                        <select id="cat1" class="border rounded px-3 py-1.5 outline-none focus:border-indigo-500 w-full sm:w-1/2"><option value="">-- Catégorie A --</option></select>
 
-                        <div class="flex items-center space-x-3 bg-white px-3 py-1.5 border rounded">
+                        <div class="flex items-center space-x-2 bg-white px-2 py-1.5 border rounded text-xs">
                             <label class="flex items-center space-x-1 cursor-pointer"><input type="radio" name="catOp" value="AND" checked class="text-indigo-600"><span>ET</span></label>
                             <label class="flex items-center space-x-1 cursor-pointer"><input type="radio" name="catOp" value="OR" class="text-indigo-600"><span>OU</span></label>
                         </div>
 
-                        <select id="cat2" class="border rounded px-3 py-1.5 outline-none focus:border-indigo-500 w-full sm:w-1/3"><option value="">-- Catégorie B --</option></select>
+                        <select id="cat2" class="border rounded px-3 py-1.5 outline-none focus:border-indigo-500 w-full sm:w-1/2"><option value="">-- Catégorie B --</option></select>
                     </div>
 
-                    <div class="pt-1 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-                        <div class="flex items-center"><label class="mr-2 font-semibold text-slate-700">Temps :</label><select id="filterTime" class="border rounded px-3 py-1.5 outline-none focus:border-indigo-500"><option value="">Tous</option><option value="4">4h</option><option value="6">6h</option><option value="8">8h</option></select></div>
-                        <div class="flex items-center"><label class="mr-2 font-semibold text-slate-700" title="Éléments rares d'expédition">Rare Expéd. :</label><select id="filterExp" class="border rounded px-3 py-1.5 outline-none focus:border-indigo-500"><option value="">Tous</option><option value="Oui">Oui</option><option value="Non">Non</option></select></div>
-                        <div class="flex items-center"><label class="mr-2 font-semibold text-slate-700">Sélection :</label>
-                            <select id="filterSel" class="border rounded px-3 py-1.5 outline-none focus:border-indigo-500 bg-white">
-                                <option value="all">Tous</option>
-                                <option value="checked">Sélectionnés (✓)</option>
-                                <option value="unchecked">Non sélectionnés</option>
-                            </select>
-                        </div>
+                    <div class="pt-1 flex space-x-2">
+                        <div class="flex items-center flex-1"><label class="mr-2 font-semibold text-slate-700 text-xs">Temps:</label><select id="filterTime" class="w-full border rounded px-2 py-1.5 outline-none focus:border-indigo-500"><option value="">Tous</option><option value="4">4h</option><option value="6">6h</option><option value="8">8h</option></select></div>
+                        <div class="flex items-center flex-1"><label class="mr-2 font-semibold text-slate-700 text-xs" title="Éléments rares d'expédition">Rare:</label><select id="filterExp" class="w-full border rounded px-2 py-1.5 outline-none focus:border-indigo-500"><option value="">Tous</option><option value="Oui">Oui</option><option value="Non">Non</option></select></div>
                     </div>
                 </div>
             </div>
 
-            <div class="mt-4 flex justify-end">
+            <div class="mt-4 flex justify-between items-center">
+                <span class="text-xs text-slate-500 italic">💡 L'algorithme utilisera uniquement les objets actuellement affichés dans le tableau ci-dessous.</span>
                 <button onclick="resetFilters()" class="text-sm text-slate-500 hover:text-slate-800 underline">Réinitialiser les filtres</button>
             </div>
         </div>
@@ -94,10 +86,9 @@
             <table class="w-full text-left border-collapse whitespace-nowrap text-sm">
                 <thead class="bg-slate-200 sticky top-0 shadow-sm z-10">
                 <tr>
-                    <th class="p-2 border-b text-center font-bold w-10 border-r border-slate-300 text-indigo-700">✓</th>
                     <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center w-12" onclick="sortTable('n')">Niv ↕</th>
                     <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('obj')">Objet ↕</th>
-                    <th class="p-2 border-b font-semibold bg-indigo-50 text-indigo-900 border-l border-slate-300 w-28 text-center" title="Tendance d'évolution du marché">📈 Évolution</th>
+                    <th class="p-2 border-b font-semibold bg-indigo-50 text-indigo-900 border-l border-slate-300 w-36 text-center" title="Tendance d'évolution du marché">📈 Évolution</th>
                     <th class="p-2 border-b font-semibold bg-orange-100 text-orange-900 border-l border-slate-300 w-32 text-center" title="Popularité (Fixe la semaine)">🔥 Popularité</th>
                     <th class="p-2 border-b font-semibold bg-emerald-100 text-emerald-900 border-x border-slate-300 w-36 text-center" title="État des stocks du marché">📦 Demande</th>
                     <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center" onclick="sortTable('t')">Temps ↕</th>
@@ -122,7 +113,7 @@
                 </ul>
 
                 <div class="mt-4 inline-block bg-orange-50 border border-orange-200 rounded p-2">
-                    <label class="flex items-center space-x-2 font-semibold text-orange-800 cursor-pointer">
+                    <label class="flex items-center space-x-2 font-semibold text-orange-800 cursor-pointer text-sm">
                         <input type="checkbox" id="allowRareExp" class="custom-checkbox" checked>
                         <span>Autoriser l'utilisation des éléments rares d'expédition dans les plannings</span>
                     </label>
@@ -234,13 +225,12 @@
     ];
 
     // LOGIQUE DU MARCHÉ
-    const POP_MULT = { 'Faible': 0.8, 'Moyenne': 1.0, 'Forte': 1.2, 'Très Forte': 1.4 };
+    const POP_MULT = { 'Faible': 0.8, 'Moyenne': 1.0, 'Élevée': 1.2, 'Très élevée': 1.4 };
     const DEM_TIERS = ['Excédentaire', 'En surplus', 'Suffisante', 'Insuffisante', 'Introuvable'];
     const DEM_MULT = [0.6, 0.8, 1.0, 1.3, 1.6];
 
     const data = rawData.map((item, index) => ({ ...item, id: index }));
     let currentData = [...data];
-    let selectedIds = new Set();
     let marketData = {};
 
     // Initialisation
@@ -248,23 +238,18 @@
 
     // GESTION SAUVEGARDE LOCALE
     function saveToLocalStorage() {
-        const saveObj = {
-            sel: Array.from(selectedIds),
-            market: marketData
-        };
-        localStorage.setItem('fabriqueSave3', JSON.stringify(saveObj));
+        const saveObj = { market: marketData };
+        localStorage.setItem('fabriqueSave4', JSON.stringify(saveObj));
     }
 
     function loadFromLocalStorage() {
-        const saved = localStorage.getItem('fabriqueSave3');
+        const saved = localStorage.getItem('fabriqueSave4');
         if(saved) {
             try {
                 const parsed = JSON.parse(saved);
-                selectedIds = new Set(parsed.sel || []);
                 if(parsed.market) {
                     for(let id in parsed.market) {
                         marketData[id] = parsed.market[id];
-                        if(!marketData[id].evo) marketData[id].evo = '-';
                     }
                 }
             } catch(e) { console.error("Erreur lecture", e); }
@@ -272,8 +257,8 @@
     }
 
     function clearLocalStorage() {
-        if(confirm("Voulez-vous vraiment effacer toutes vos sélections et réglages de marché ?")) {
-            localStorage.removeItem('fabriqueSave3');
+        if(confirm("Voulez-vous vraiment effacer tous les réglages de marché ?")) {
+            localStorage.removeItem('fabriqueSave4');
             location.reload();
         }
     }
@@ -283,7 +268,7 @@
     // GESTION DOM
     const tableBody = document.getElementById('tableBody');
     const countSpan = document.getElementById('count');
-    const inputs = ['searchObj', 'searchIng', 'minN', 'maxN', 'minV', 'maxV', 'filterExp', 'cat1', 'cat2', 'filterSel', 'filterTime'].map(id => document.getElementById(id));
+    const inputs = ['searchObj', 'searchIng', 'minN', 'maxN', 'minV', 'maxV', 'filterExp', 'cat1', 'cat2', 'filterTime'].map(id => document.getElementById(id));
     const radios = document.querySelectorAll('input[name="catOp"]');
 
     const uniqueCategories = [...new Set(data.flatMap(d => [d.c1, d.c2]).filter(Boolean))].sort();
@@ -297,12 +282,6 @@
     populateSelect(inputs[7]);
     populateSelect(inputs[8]);
 
-    window.toggleSelection = function(id) {
-        if (selectedIds.has(id)) selectedIds.delete(id);
-        else selectedIds.add(id);
-        applyFilters();
-    };
-
     window.updateMarket = function(id, type, val) {
         if(type === 'pop') marketData[id].pop = val;
         if(type === 'dem') marketData[id].dem = parseInt(val);
@@ -311,22 +290,20 @@
 
     function render(filteredData) {
         tableBody.innerHTML = filteredData.map(d => {
-            let rowBg = selectedIds.has(d.id) ? 'bg-indigo-50/50' : '';
             let m = marketData[d.id];
 
             return `
-                <tr class="hover:bg-slate-100 transition-colors ${rowBg}">
-                    <td class="p-1 border-b text-center border-r border-slate-200">
-                        <input type="checkbox" class="custom-checkbox" ${selectedIds.has(d.id) ? 'checked' : ''} onchange="toggleSelection(${d.id})">
-                    </td>
+                <tr class="hover:bg-slate-100 transition-colors">
                     <td class="p-1 border-b text-center font-mono text-xs">${d.n}</td>
                     <td class="p-1 border-b font-medium text-slate-900">${d.obj}</td>
 
                     <td class="p-1 border-b border-l border-slate-200 text-center bg-indigo-50/50">
                         <select class="select-market select-evo" onchange="updateMarket(${d.id}, 'evo', this.value)">
-                            <option value="↑" ${m.evo==='↑'?'selected':''}>↑ Hausse</option>
-                            <option value="-" ${m.evo==='-'?'selected':''}>- Stable</option>
-                            <option value="↓" ${m.evo==='↓'?'selected':''}>↓ Baisse</option>
+                            <option value="Forte augmentation" ${m.evo==='Forte augmentation'?'selected':''}>↑↑ Forte aug.</option>
+                            <option value="Augmentation" ${m.evo==='Augmentation'?'selected':''}>↑ Augmentation</option>
+                            <option value="Constante" ${m.evo==='Constante'?'selected':''}>- Constante</option>
+                            <option value="En baisse" ${m.evo==='En baisse'?'selected':''}>↓ En baisse</option>
+                            <option value="En chute" ${m.evo==='En chute'?'selected':''}>↓↓ En chute</option>
                         </select>
                     </td>
 
@@ -334,8 +311,8 @@
                         <select class="select-market select-pop" onchange="updateMarket(${d.id}, 'pop', this.value)">
                             <option value="Faible" ${m.pop==='Faible'?'selected':''}>Faible (x0.8)</option>
                             <option value="Moyenne" ${m.pop==='Moyenne'?'selected':''}>Moyenne (x1.0)</option>
-                            <option value="Forte" ${m.pop==='Forte'?'selected':''}>Forte (x1.2)</option>
-                            <option value="Très Forte" ${m.pop==='Très Forte'?'selected':''}>T. Forte (x1.4)</option>
+                            <option value="Élevée" ${m.pop==='Élevée'?'selected':''}>Élevée (x1.2)</option>
+                            <option value="Très élevée" ${m.pop==='Très élevée'?'selected':''}>Très élevée (x1.4)</option>
                         </select>
                     </td>
                     <td class="p-1 border-b border-r border-slate-200 text-center bg-emerald-50/50">
@@ -374,13 +351,10 @@
     }
 
     function applyFilters() {
-        const [sObj, sIng, minN, maxN, minV, maxV, exp, catA, catB, sel, timeFilter] = inputs.map(i => i.value.toLowerCase());
+        const [sObj, sIng, minN, maxN, minV, maxV, exp, catA, catB, timeFilter] = inputs.map(i => i.value.toLowerCase());
         const op = document.querySelector('input[name="catOp"]:checked').value;
 
         currentData = data.filter(d => {
-            if (sel === 'checked' && !selectedIds.has(d.id)) return false;
-            if (sel === 'unchecked' && selectedIds.has(d.id)) return false;
-
             if (sObj && !d.obj.toLowerCase().includes(sObj)) return false;
             if (sIng && !d.ing.toLowerCase().includes(sIng)) return false;
             if (d.n < (parseInt(minN)||0) || d.n > (parseInt(maxN)||999)) return false;
@@ -403,7 +377,7 @@
     }
 
     function resetFilters() {
-        inputs.forEach(input => input.value = input.id === 'filterSel' ? 'all' : '');
+        inputs.forEach(input => input.value = '');
         radios[0].checked = true;
         applyFilters();
     }
@@ -426,14 +400,11 @@
         saveToLocalStorage();
 
         const allowRare = document.getElementById('allowRareExp').checked;
-        const selectedItems = data.filter(d => selectedIds.has(d.id) && (allowRare || d.exp === 'Non'));
+        // L'algorithme se base EXCLUSIVEMENT sur les données affichées dans le tableau (currentData)
+        const activeItems = currentData.filter(d => allowRare || d.exp === 'Non');
 
-        if (selectedItems.length === 0) {
-            if(!allowRare && Array.from(selectedIds).length > 0) {
-                alert("Tous les objets sélectionnés requièrent des éléments rares d'expédition. Cochez l'option pour les autoriser.");
-            } else {
-                alert("Veuillez sélectionner au moins un objet dans le tableau.");
-            }
+        if (activeItems.length === 0) {
+            alert("Le tableau est vide ou tous les objets affichés requièrent des éléments rares. Modifiez vos filtres ou autorisez les éléments rares.");
             return;
         }
 
@@ -452,7 +423,7 @@
             for (let dayIndex = 0; dayIndex < 5; dayIndex++) {
                 let bestSchedulesBySet = new Map();
 
-                dfsSchedulesDay([], 0, 0, selectedItems, new Set(), bestSchedulesBySet, dynamicDemands);
+                dfsSchedulesDay([], 0, 0, activeItems, new Set(), bestSchedulesBySet, dynamicDemands);
                 let daySchedules = Array.from(bestSchedulesBySet.values());
                 let top3 = findTopDisjointSchedules(daySchedules);
 
@@ -510,7 +481,7 @@
                 const signature = Array.from(usedIds).sort((a, b) => a - b).join('-');
                 let existing = bestSchedulesBySet.get(signature);
 
-                // Tri primaire par Efficacité, puis Gain, puis Temps
+                // Tri primaire par Efficacité, puis Gain
                 let eff = currentGain / currentTime;
                 let shouldUpdate = !existing || (eff > existing.eff) || (eff === existing.eff && currentGain > existing.gain);
 
@@ -555,7 +526,7 @@
                 return `
                         <div class="bg-white rounded-lg border border-slate-200 p-4 shadow-sm">
                             <h3 class="font-bold text-lg text-slate-800 border-b pb-2 mb-3">${day.dayName}</h3>
-                            <div class="text-slate-500 italic text-center py-4">Pas de combinaison optimale trouvée avec les paramètres actuels.</div>
+                            <div class="text-slate-500 italic text-center py-4">Pas de combinaison optimale trouvée avec les objets affichés dans le tableau. Modifiez vos filtres.</div>
                         </div>
                     `;
             }
