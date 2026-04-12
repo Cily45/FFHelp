@@ -28,10 +28,14 @@
                 <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île</h1>
                 <p class="text-slate-500">Planificateur Hebdomadaire & Dynamique du Marché</p>
             </div>
-            <div class="space-x-2">
-                <button onclick="clearLocalStorage()" class="text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded hover:bg-red-200 font-semibold transition">Vider la sauvegarde</button>
+            <div class="space-x-3 flex items-center">
+                <button onclick="fetchCommunityData()" id="apiBtn" class="text-sm bg-indigo-100 text-indigo-700 px-4 py-2 rounded shadow-sm hover:bg-indigo-200 font-bold transition flex items-center">
+                    <span class="mr-2">🔄</span> Synchroniser API (Mardi)
+                </button>
+
+                <button onclick="clearLocalStorage()" class="text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded hover:bg-red-200 font-semibold transition">Vider Sauvegarde</button>
                 <span class="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded border border-blue-200">
-                        <span id="count">0</span> objet(s) affiché(s)
+                        <span id="count">0</span> affiché(s)
                     </span>
             </div>
         </header>
@@ -82,7 +86,13 @@
             </div>
         </div>
 
-        <div class="table-container border border-slate-200 rounded-md">
+        <div class="table-container border border-slate-200 rounded-md relative">
+            <div id="apiLoader" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600 mb-4"></div>
+                <p class="text-indigo-800 font-bold text-lg">Récupération des données du marché...</p>
+                <p class="text-sm text-slate-500">Contact des serveurs communautaires en cours.</p>
+            </div>
+
             <table class="w-full text-left border-collapse whitespace-nowrap text-sm">
                 <thead class="bg-slate-200 sticky top-0 shadow-sm z-10">
                 <tr>
@@ -114,7 +124,7 @@
 
                 <div class="mt-4 inline-block bg-orange-50 border border-orange-200 rounded p-2">
                     <label class="flex items-center space-x-2 font-semibold text-orange-800 cursor-pointer text-sm">
-                        <input type="checkbox" id="allowRareExp" class="custom-checkbox" checked>
+                        <input type="checkbox" id="allowRareExp" class="cursor-pointer w-4 h-4 accent-orange-600" checked>
                         <span>Autoriser l'utilisation des éléments rares d'expédition dans les plannings</span>
                     </label>
                 </div>
@@ -139,7 +149,7 @@
 </div>
 
 <script>
-    // Données complètes
+    // Données complètes (Identique à la version précédente)
     const rawData = [
         { n: 88, obj: "Anneau en quartz exotique", t: 6, val: 72, c1: "Accessoire", c2: "En céramique", exp: "Non", ing: "3 x Quartz insulaire | 3 x Minerai de fer insulaire | 2 x Pierre insulaire" },
         { n: 16, obj: "Bague en corail manufacturée", t: 6, val: 42, c1: "Accessoire", c2: "Marin", exp: "Non", ing: "3 x Corail insulaire | 3 x Sarment insulaire" },
@@ -239,18 +249,16 @@
     // GESTION SAUVEGARDE LOCALE
     function saveToLocalStorage() {
         const saveObj = { market: marketData };
-        localStorage.setItem('fabriqueSave4', JSON.stringify(saveObj));
+        localStorage.setItem('fabriqueSaveFinal', JSON.stringify(saveObj));
     }
 
     function loadFromLocalStorage() {
-        const saved = localStorage.getItem('fabriqueSave4');
+        const saved = localStorage.getItem('fabriqueSaveFinal');
         if(saved) {
             try {
                 const parsed = JSON.parse(saved);
                 if(parsed.market) {
-                    for(let id in parsed.market) {
-                        marketData[id] = parsed.market[id];
-                    }
+                    for(let id in parsed.market) marketData[id] = parsed.market[id];
                 }
             } catch(e) { console.error("Erreur lecture", e); }
         }
@@ -258,12 +266,70 @@
 
     function clearLocalStorage() {
         if(confirm("Voulez-vous vraiment effacer tous les réglages de marché ?")) {
-            localStorage.removeItem('fabriqueSave4');
+            localStorage.removeItem('fabriqueSaveFinal');
             location.reload();
         }
     }
 
     loadFromLocalStorage();
+
+    // NOUVEAU: FONCTION API SIMULÉE
+    // Cette fonction illustre comment appeler une URL GitHub (ex: data.json d'Overseas Casuals)
+    async function fetchCommunityData() {
+        const btn = document.getElementById('apiBtn');
+        const loader = document.getElementById('apiLoader');
+
+        // Animation UI
+        loader.classList.remove('hidden');
+        btn.innerHTML = '<span class="mr-2 animate-spin">⏳</span> Connexion...';
+        btn.disabled = true;
+
+        try {
+            // EXEMPLE RÉEL : Remplacer l'URL par le vrai repo JSON maintenu par la communauté.
+            // const response = await fetch('https://raw.githubusercontent.com/VOTRE_LIEN/data.json');
+            // const apiData = await response.json();
+
+            // SIMULATION D'UN APPEL RÉSEAU DE 1.5 SECONDE
+            await new Promise(r => setTimeout(r, 1500));
+
+            // Données simulées que l'API renverrait :
+            const simulatedApiData = {
+                "Anneau en quartz exotique": { pop: "Élevée", dem: 4, evo: "Forte augmentation" },
+                "Beurre manufacturé": { pop: "Faible", dem: 0, evo: "En chute" },
+                "Bouillabaisse manufacturée": { pop: "Très élevée", dem: 3, evo: "Augmentation" }
+            };
+
+            // Mise à jour de la base de données interne
+            data.forEach(item => {
+                const apiItem = simulatedApiData[item.obj];
+                if(apiItem) {
+                    marketData[item.id].pop = apiItem.pop;
+                    marketData[item.id].dem = apiItem.dem;
+                    marketData[item.id].evo = apiItem.evo;
+                } else {
+                    // Valeurs par défaut si l'API n'a rien (très utile le mardi à 10h01)
+                    marketData[item.id].pop = "Moyenne";
+                    marketData[item.id].dem = 2; // Suffisante
+                    marketData[item.id].evo = "-";
+                }
+            });
+
+            // Sauvegarde & Rafraichissement Visuel
+            saveToLocalStorage();
+            applyFilters(); // Rafraichit le tableau
+
+            alert("✅ Synchronisation réussie ! Les données de la semaine ont été appliquées.");
+
+        } catch (error) {
+            console.error("Erreur de synchronisation:", error);
+            alert("❌ Erreur lors de la récupération des données. Vérifiez l'URL de l'API ou votre connexion.");
+        } finally {
+            // Restauration UI
+            loader.classList.add('hidden');
+            btn.innerHTML = '<span class="mr-2">🔄</span> Synchroniser API (Mardi)';
+            btn.disabled = false;
+        }
+    }
 
     // GESTION DOM
     const tableBody = document.getElementById('tableBody');
@@ -294,7 +360,7 @@
 
             return `
                 <tr class="hover:bg-slate-100 transition-colors">
-                    <td class="p-1 border-b text-center font-mono text-xs">${d.n}</td>
+                    <td class="p-1 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center w-12">${d.n}</td>
                     <td class="p-1 border-b font-medium text-slate-900">${d.obj}</td>
 
                     <td class="p-1 border-b border-l border-slate-200 text-center bg-indigo-50/50">
