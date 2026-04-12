@@ -8,11 +8,12 @@
     <style>
         .table-container { max-height: 65vh; overflow-y: auto; }
         tr:nth-child(even) { background-color: #f8fafc; }
-        /* Style personnalisé pour la scrollbar du tableau */
         .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
         .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        /* Style de la checkbox personnalisée */
+        .custom-checkbox { width: 1.25rem; height: 1.25rem; cursor: pointer; accent-color: #2563eb; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-8">
@@ -71,13 +72,23 @@
                     </select>
                 </div>
 
-                <div class="pt-1">
-                    <label class="mr-2 font-semibold text-slate-700">Recette Expert :</label>
-                    <select id="filterExp" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500">
-                        <option value="">Tous</option>
-                        <option value="Oui">Oui</option>
-                        <option value="Non">Non</option>
-                    </select>
+                <div class="pt-1 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                    <div class="flex items-center">
+                        <label class="mr-2 font-semibold text-slate-700">Recette Expert :</label>
+                        <select id="filterExp" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500">
+                            <option value="">Tous</option>
+                            <option value="Oui">Oui</option>
+                            <option value="Non">Non</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center">
+                        <label class="mr-2 font-semibold text-slate-700">Sélection :</label>
+                        <select id="filterSel" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500">
+                            <option value="all">Tous</option>
+                            <option value="checked">Sélectionnés (✓)</option>
+                            <option value="unchecked">Non sélectionnés</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -92,6 +103,7 @@
         <table class="w-full text-left border-collapse whitespace-nowrap">
             <thead class="bg-slate-200 sticky top-0 shadow-sm z-10">
             <tr>
+                <th class="p-3 border-b text-center font-semibold w-10">✓</th>
                 <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('n')">Niveau ↕</th>
                 <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('obj')">Objet ↕</th>
                 <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('val')">Valeur ↕</th>
@@ -107,8 +119,7 @@
 </div>
 
 <script>
-    // Le jeu de données complet (Vous pouvez coller la suite de vos données ici)
-    const data = [
+    const rawData = [
         { n: 88, obj: "Anneau en quartz exotique", val: 72, c1: "Accessoire", c2: "En céramique", exp: "Non", ing: "3 x Quartz insulaire | 3 x Minerai de fer insulaire | 2 x Pierre insulaire" },
         { n: 16, obj: "Bague en corail manufacturée", val: 42, c1: "Accessoire", c2: "Marin", exp: "Non", ing: "3 x Corail insulaire | 3 x Sarment insulaire" },
         { n: 58, obj: "Bagues d'oreilles en argent manufacturées", val: 136, c1: "Accessoire", c2: "En métal", exp: "Oui", ing: "2 x Minerai d'argent insulaire | 3 x Cassitérite insulaire | 3 x Corail insulaire" },
@@ -125,20 +136,89 @@
         { n: 56, obj: "Caramel exotique", val: 81, c1: "Pâtisserie", c2: "", exp: "Non", ing: "4 x Canne à sucre insulaire | 2 x Lait d'animal d'élevage" },
         { n: 74, obj: "Céréales manufacturées", val: 52, c1: "À longue conservation", c2: "", exp: "Non", ing: "2 x Maïs exotique | 2 x Canne à sucre insulaire" },
         { n: 16, obj: "Chaise en bois manufacturée", val: 42, c1: "Meuble", c2: "En bois", exp: "Non", ing: "4 x Rondin insulaire | 2 x Sarment insulaire" },
-        { n: 66, obj: "Chapeau de cavalier exotique", val: 81, c1: "Armure", c2: "Textile", exp: "Non", ing: "2 x Plume d'animal d'élevage | 2 x Fleur de coton insulaire | 2 x Chanvre insulaire" }
+        { n: 66, obj: "Chapeau de cavalier exotique", val: 81, c1: "Armure", c2: "Textile", exp: "Non", ing: "2 x Plume d'animal d'élevage | 2 x Fleur de coton insulaire | 2 x Chanvre insulaire" },
+        { n: 14, obj: "Choucroute manufacturée", val: 40, c1: "À longue conservation", c2: "", exp: "Non", ing: "1 x Chou exotique | 3 x Sel gemme insulaire" },
+        { n: 14, obj: "Citrouille grillée manufacturée", val: 40, c1: "Plat", c2: "", exp: "Non", ing: "1 x Citrouille exotique | 3 x Sève insulaire" },
+        { n: 14, obj: "Collier en bois manufacturé", val: 28, c1: "Accessoire", c2: "En bois", exp: "Non", ing: "3 x Branche insulaire | 1 x Sarment insulaire" },
+        { n: 16, obj: "Comptoir en brique manufacturé", val: 48, c1: "Meuble", c2: "En céramique", exp: "Non", ing: "2 x Argile insulaire | 2 x Pierre calcaire insulaire | 2 x Rondin de palmier insulaire" },
+        { n: 74, obj: "Condiment épicé à la tomate exotique", val: 52, c1: "Condiment", c2: "", exp: "Non", ing: "2 x Tomate exotique | 1 x Canne à sucre insulaire | 1 x Feuille d'arbuste insulaire" },
+        { n: 76, obj: "Confiture de fraises exotiques", val: 78, c1: "Condiment", c2: "", exp: "Non", ing: "3 x Fraise exotique | 2 x Canne à sucre insulaire | 1 x Sève insulaire" },
+        { n: 14, obj: "Coquillage grillé manufacturé", val: 28, c1: "Plat", c2: "Marin", exp: "Non", ing: "2 x Coque insulaire | 2 x Sargasse tamamo insulaire" },
+        { n: 66, obj: "Cor exotique", val: 81, c1: "Article du quotidien", c2: "Animalier", exp: "Non", ing: "2 x Corne d'animal d'élevage | 2 x Argile insulaire | 2 x Chanvre insulaire" },
+        { n: 64, obj: "Corde exotique", val: 36, c1: "Article du quotidien", c2: "Textile", exp: "Non", ing: "2 x Chanvre insulaire | 1 x Feuille d'arbuste insulaire | 1 x Sarment insulaire" },
+        { n: 14, obj: "Couteau de cuisine manufacturé", val: 44, c1: "Article du quotidien", c2: "Animalier", exp: "Non", ing: "1 x Griffe d'animal d'élevage | 3 x Rondin de palmier insulaire" },
+        { n: 98, obj: "Crosse exotique", val: 120, c1: "Arme", c2: "En bois", exp: "Non", ing: "4 x Croc d'animal d'élevage | 2 x Quartz insulaire | 2 x Rondin insulaire" },
+        { n: 98, obj: "Épée de corail manufacturée", val: 72, c1: "Arme", c2: "Marin", exp: "Non", ing: "3 x Corail insulaire | 3 x Résine insulaire | 2 x Rondin de palmier insulaire" },
+        { n: 178, obj: "Épingle à cheveux manufacturée", val: 72, c1: "Accessoire", c2: "En métal", exp: "Non", ing: "4 x Minerai d'or insulaire | 2 x Minerai de cuivre jaune insulaire | 2 x Quartz insulaire" },
+        { n: 86, obj: "Faux de jardinage exotique", val: 90, c1: "Article du quotidien", c2: "En métal", exp: "Non", ing: "3 x Griffe d'animal d'élevage | 2 x Minerai de fer insulaire | 1 x Rondin de palmier insulaire" },
+        { n: 86, obj: "Flan à la citrouille manufacturé", val: 78, c1: "Pâtisserie", c2: "", exp: "Non", ing: "3 x Citrouille exotique | 1 x Œuf d'animal d'élevage | 1 x Lait d'animal d'élevage" },
+        { n: 106, obj: "Fleurs séchées manufacturées", val: 54, c1: "Article du quotidien", c2: "Meuble", exp: "Non", ing: "3 x Fleur multicolore insulaire | 2 x Noix de coco insulaire | 1 x Sève insulaire" },
+        { n: 58, obj: "Formule de croissance manufacturée", val: 136, c1: "Concoction", c2: "", exp: "Oui", ing: "2 x Alysson insulaire | 3 x Feuille d'arbuste insulaire | 3 x Branche insulaire" },
+        { n: 98, obj: "Garde-doigts d'écailles exotiques", val: 120, c1: "Armure", c2: "Animalier", exp: "Non", ing: "4 x Exuvie d'animal d'élevage | 2 x Minerai de fer insulaire | 2 x Fleur de coton insulaire" },
+        { n: 78, obj: "Hache de fer manufacturée", val: 72, c1: "Arme", c2: "En métal", exp: "Non", ing: "3 x Minerai de fer insulaire | 3 x Rondin insulaire | 2 x Sable insulaire" },
+        { n: 16, obj: "Hora manufacturés", val: 72, c1: "Arme", c2: "Animalier", exp: "Non", ing: "2 x Exuvie d'animal d'élevage | 4 x Pierre insulaire" },
+        { n: 58, obj: "Huile de requin manufacturée", val: 136, c1: "Article du quotidien", c2: "Marin", exp: "Oui", ing: "2 x Requin-marteau insulaire | 3 x Sargasse tamamo insulaire | 3 x Sève insulaire" },
+        { n: 146, obj: "Imam bayildi manufacturé", val: 90, c1: "Plat", c2: "", exp: "Non", ing: "2 x Aubergine exotique | 2 x Oignon exotique | 2 x Tomate exotique" },
+        { n: 104, obj: "Jus de coco manufacturé", val: 36, c1: "Pâtisserie", c2: "Concoction", exp: "Non", ing: "2 x Noix de coco insulaire | 2 x Canne à sucre insulaire" },
+        { n: 86, obj: "Jus de légumes manufacturé", val: 78, c1: "Concoction", c2: "", exp: "Non", ing: "3 x Chou exotique | 2 x Feuille d'arbuste insulaire | 1 x Sargasse tamamo insulaire" },
+        { n: 128, obj: "Lanterne manufacturée", val: 80, c1: "Article du quotidien", c2: "", exp: "Non", ing: "3 x Agaric luisant insulaire | 3 x Quartz insulaire | 2 x Minerai de cuivre insulaire" },
+        { n: 98, obj: "Lit exotique", val: 120, c1: "Meuble", c2: "Textile", exp: "Non", ing: "4 x Laine d'animal d'élevage | 2 x Fleur de coton insulaire | 2 x Rondin insulaire" },
+        { n: 136, obj: "Lunettes manufacturées", val: 54, c1: "Armure", c2: "Article du quotidien", exp: "Non", ing: "3 x Minerai de mithril insulaire | 2 x Quartz insulaire | 1 x Minerai de cuivre insulaire" },
+        { n: 16, obj: "Macuahuitl manufacturé", val: 42, c1: "Arme", c2: "En bois", exp: "Non", ing: "3 x Rondin de palmier insulaire | 3 x Pierre insulaire" },
+        { n: 166, obj: "Meule insulaire", val: 60, c1: "Article du quotidien", c2: "", exp: "Non", ing: "2 x Sable d'œil-de-faucon insulaire | 2 x Minerai de mithril insulaire | 2 x Sable insulaire" },
+        { n: 104, obj: "Miel manufacturé", val: 36, c1: "Pâtisserie", c2: "Condiment", exp: "Non", ing: "2 x Ruche d'abeilles insulaires | 2 x Sève insulaire" },
+        { n: 66, obj: "Morue salée exotique", val: 54, c1: "À longue conservation", c2: "Marin", exp: "Non", ing: "4 x Poisson de mer insulaire | 2 x Sel gemme insulaire" },
+        { n: 14, obj: "Œuf dur manufacturé", val: 44, c1: "Plat", c2: "Animalier", exp: "Non", ing: "1 x Œuf d'animal d'élevage | 3 x Sargasse tamamo insulaire" },
+        { n: 108, obj: "Opale bleue insulaire", val: 80, c1: "En céramique", c2: "", exp: "Non", ing: "4 x Bois opalisé insulaire | 4 x Sable insulaire" },
+        { n: 114, obj: "Pain de Félicité manufacturé", val: 52, c1: "Plat", c2: "Concoction", exp: "Non", ing: "2 x Blé exotique | 1 x Poisson de mer insulaire | 1 x Sel gemme insulaire" },
+        { n: 104, obj: "Paprika manufacturé", val: 52, c1: "Condiment", c2: "Concoction", exp: "Non", ing: "2 x Poivron exotique | 2 x Feuille d'arbuste insulaire" },
+        { n: 74, obj: "Pâte d'encre exotique", val: 36, c1: "Condiment", c2: "Marin", exp: "Non", ing: "2 x Calmar insulaire | 2 x Sel gemme insulaire" },
+        { n: 186, obj: "Pâtes aux piments exotiques", val: 75, c1: "Plat", c2: "", exp: "Non", ing: "2 x Brocoli exotique | 1 x Blé exotique | 3 x Sel gemme insulaire" },
+        { n: 144, obj: "Plat en laiton insulaire", val: 36, c1: "Article du quotidien", c2: "En métal", exp: "Non", ing: "2 x Minerai de cuivre jaune insulaire | 2 x Minerai de cuivre insulaire" },
+        { n: 116, obj: "Poêle manufacturé", val: 54, c1: "Meuble", c2: "En métal", exp: "Non", ing: "2 x Charbon insulaire | 3 x Minerai de fer insulaire | 1 x Granite insulaire" },
+        { n: 56, obj: "Popoto doux manufacturé", val: 72, c1: "Pâtisserie", c2: "", exp: "Non", ing: "2 x Popoto exotique | 1 x Lait d'animal d'élevage | 3 x Sève insulaire" },
+        { n: 4, obj: "Potion manufacturée", val: 28, c1: "Concoction", c2: "", exp: "Non", ing: "2 x Palme insulaire | 2 x Feuille d'arbuste insulaire" },
+        { n: 14, obj: "Poudre manufacturée", val: 28, c1: "Concoction", c2: "En céramique", exp: "Non", ing: "2 x Sable insulaire | 1 x Pierre calcaire insulaire | 1 x Feuille d'arbuste insulaire" },
+        { n: 78, obj: "Radis mariné manufacturé", val: 104, c1: "À longue conservation", c2: "", exp: "Non", ing: "4 x Radis exotique | 2 x Pomme insulaire | 2 x Canne à sucre insulaire" },
+        { n: 58, obj: "Rapière en grenat manufacturée", val: 136, c1: "Arme", c2: "En céramique", exp: "Oui", ing: "2 x Grenat brut insulaire | 3 x Minerai de cuivre insulaire | 3 x Cassitérite insulaire" },
+        { n: 66, obj: "Ruban exotique", val: 54, c1: "Accessoire", c2: "Textile", exp: "Non", ing: "2 x Fleur de coton insulaire | 2 x Minerai de cuivre insulaire | 2 x Sarment insulaire" },
+        { n: 174, obj: "Salade de fruits exotiques", val: 52, c1: "Pâtisserie", c2: "", exp: "Non", ing: "1 x Pastèque exotique | 1 x Fraise exotique | 1 x Pomme insulaire | 1 x Noix de coco insulaire" },
+        { n: 184, obj: "Salade de haricots buffle exotiques", val: 52, c1: "Plat", c2: "Animalier", exp: "Non", ing: "2 x Haricots buffle exotiques | 2 x Lait d'animal d'élevage" },
+        { n: 54, obj: "Salade de panais manufacturée", val: 48, c1: "Plat", c2: "", exp: "Non", ing: "2 x Panais exotique | 1 x Feuille d'arbuste insulaire | 1 x Sève insulaire" },
+        { n: 114, obj: "Salade de popotos manufacturée", val: 52, c1: "Plat", c2: "", exp: "Non", ing: "2 x Popoto exotique | 1 x Pomme insulaire | 1 x Feuille d'arbuste insulaire" },
+        { n: 148, obj: "Saumure de courgettes manufacturée", val: 104, c1: "À longue conservation", c2: "", exp: "Non", ing: "4 x Courgette exotique | 2 x Sargasse tamamo insulaire | 2 x Canne à sucre insulaire" },
+        { n: 134, obj: "Sauté de haricots-fleurs manufacturé", val: 52, c1: "Plat", c2: "", exp: "Non", ing: "2 x Haricot-fleur exotique | 2 x Sel gemme insulaire" },
+        { n: 76, obj: "Soupe d'oignons manufacturée", val: 78, c1: "Plat", c2: "", exp: "Non", ing: "3 x Oignon exotique | 2 x Sel gemme insulaire | 1 x Feuille d'arbuste insulaire" },
+        { n: 146, obj: "Soupe de betterave manufacturée", val: 78, c1: "Plat", c2: "", exp: "Non", ing: "3 x Betterave exotique | 1 x Popoto exotique | 1 x Lait d'animal d'élevage" },
+        { n: 116, obj: "Soupe de poireaux manufacturée", val: 90, c1: "Concoction", c2: "Animalier", exp: "Non", ing: "3 x Poireau exotique | 1 x Lait d'animal d'élevage | 3 x Sargasse tamamo insulaire" },
+        { n: 58, obj: "Statue de mouton en bronze", val: 64, c1: "Meuble", c2: "En métal", exp: "Non", ing: "3 x Cassitérite insulaire | 3 x Minerai de cuivre insulaire | 2 x Rondin insulaire" },
+        { n: 178, obj: "Statue de pionnier en cristal", val: 80, c1: "Meuble", c2: "", exp: "Non", ing: "2 x Cristal insulaire | 2 x Spectrite insulaire | 2 x Minerai de mithril insulaire | 2 x Marbre insulaire" },
+        { n: 86, obj: "Tapis moutonnant exotique", val: 90, c1: "Meuble", c2: "Animalier", exp: "Non", ing: "3 x Toison d'animal d'élevage | 2 x Fleur de coton insulaire | 1 x Chanvre insulaire" },
+        { n: 188, obj: "Tarte à la popoto douce exotique", val: 120, c1: "Plat", c2: "Pâtisserie", exp: "Non", ing: "3 x Popoto douce exotique | 1 x Blé exotique | 1 x Œuf d'animal d'élevage | 3 x Canne à sucre insulaire" },
+        { n: 76, obj: "Tarte au poisson manufacturée", val: 78, c1: "Pâtisserie", c2: "Marin", exp: "Non", ing: "3 x Blé exotique | 2 x Poisson de mer insulaire | 1 x Canne à sucre insulaire" },
+        { n: 166, obj: "Tathlums en durium insulaire", val: 54, c1: "Arme", c2: "En métal", exp: "Non", ing: "2 x Sable de durium insulaire | 2 x Minerai de fer insulaire | 2 x Quartz insulaire" },
+        { n: 16, obj: "Tunique manufacturée", val: 72, c1: "Armure", c2: "Textile", exp: "Non", ing: "2 x Toison d'animal d'élevage | 4 x Sarment insulaire" },
+        { n: 88, obj: "Vase en porcelaine manufacturé", val: 72, c1: "Article du quotidien", c2: "En céramique", exp: "Non", ing: "3 x Granite insulaire | 3 x Quartz insulaire | 2 x Argile insulaire" },
+        { n: 138, obj: "Verre isolant manufacturé", val: 80, c1: "En céramique", c2: "", exp: "Non", ing: "4 x Spectrite insulaire | 4 x Sable insulaire" },
+        { n: 114, obj: "Vinaigrette manufacturée", val: 52, c1: "Condiment", c2: "", exp: "Non", ing: "2 x Oignon exotique | 1 x Sève insulaire | 1 x Sargasse tamamo insulaire" }
     ];
 
+    // Ajout d'un identifiant unique (id) à chaque objet pour gérer la case à cocher
+    const data = rawData.map((item, index) => ({ ...item, id: index }));
     let currentData = [...data];
+
+    // Stockage des IDs sélectionnés (Ensemble pour éviter les doublons)
+    const selectedIds = new Set();
 
     // Éléments du DOM
     const tableBody = document.getElementById('tableBody');
     const countSpan = document.getElementById('count');
     const inputs = [
-        'searchObj', 'searchIng', 'minN', 'maxN', 'minV', 'maxV', 'filterExp', 'cat1', 'cat2'
+        'searchObj', 'searchIng', 'minN', 'maxN', 'minV', 'maxV', 'filterExp', 'cat1', 'cat2', 'filterSel'
     ].map(id => document.getElementById(id));
     const radios = document.querySelectorAll('input[name="catOp"]');
 
-    // Initialisation dynamique des menus déroulants de catégories (fusion de c1 et c2 sans doublons)
+    // Initialisation dynamique des menus déroulants de catégories
     const uniqueCategories = [...new Set(data.flatMap(d => [d.c1, d.c2]).filter(Boolean))].sort();
 
     function populateSelect(selectEl) {
@@ -151,10 +231,26 @@
     populateSelect(inputs[7]); // cat1
     populateSelect(inputs[8]); // cat2
 
+    // Fonction pour gérer le clic sur une checkbox
+    window.toggleSelection = function(id) {
+        if (selectedIds.has(id)) {
+            selectedIds.delete(id);
+        } else {
+            selectedIds.add(id);
+        }
+        // On réapplique les filtres au cas où le filtre "Sélection" serait actif
+        applyFilters();
+    };
+
     // Fonction d'affichage du tableau
     function render(filteredData) {
         tableBody.innerHTML = filteredData.map(d => `
-                <tr class="hover:bg-blue-50 transition-colors">
+                <tr class="hover:bg-blue-50 transition-colors ${selectedIds.has(d.id) ? 'bg-blue-50/50' : ''}">
+                    <td class="p-3 border-b text-center">
+                        <input type="checkbox" class="custom-checkbox"
+                               ${selectedIds.has(d.id) ? 'checked' : ''}
+                               onchange="toggleSelection(${d.id})">
+                    </td>
                     <td class="p-3 border-b text-center font-mono">${d.n}</td>
                     <td class="p-3 border-b font-medium text-blue-900">${d.obj}</td>
                     <td class="p-3 border-b text-emerald-600 font-bold font-mono text-center">${d.val}</td>
@@ -184,9 +280,14 @@
         const exp = inputs[6].value;
         const catA = inputs[7].value;
         const catB = inputs[8].value;
+        const sel = inputs[9].value;
         const op = document.querySelector('input[name="catOp"]:checked').value;
 
         currentData = data.filter(d => {
+            // Filtre de sélection
+            if (sel === 'checked' && !selectedIds.has(d.id)) return false;
+            if (sel === 'unchecked' && selectedIds.has(d.id)) return false;
+
             // Filtres texte
             if (sObj && !d.obj.toLowerCase().includes(sObj)) return false;
             if (sIng && !d.ing.toLowerCase().includes(sIng)) return false;
@@ -217,24 +318,34 @@
             return true;
         });
 
-        render(currentData);
+        // On conserve le tri actif s'il y en a un
+        if (sortConfig.key) {
+            trierDonnees(sortConfig.key, false);
+        } else {
+            render(currentData);
+        }
     }
 
     // Gestion du tri des colonnes
     let sortConfig = { key: null, direction: 1 };
     function sortTable(key) {
-        if (sortConfig.key === key) {
-            sortConfig.direction *= -1; // Inverse la direction
-        } else {
-            sortConfig.key = key;
-            sortConfig.direction = 1;
+        trierDonnees(key, true);
+    }
+
+    function trierDonnees(key, toggleDirection = false) {
+        if (toggleDirection) {
+            if (sortConfig.key === key) {
+                sortConfig.direction *= -1; // Inverse la direction
+            } else {
+                sortConfig.key = key;
+                sortConfig.direction = 1;
+            }
         }
 
         currentData.sort((a, b) => {
             let valA = a[key];
             let valB = b[key];
 
-            // Gestion du tri alphabétique insensible à la casse
             if (typeof valA === 'string') valA = valA.toLowerCase();
             if (typeof valB === 'string') valB = valB.toLowerCase();
 
@@ -247,12 +358,12 @@
 
     // Fonction pour vider tous les filtres
     function resetFilters() {
-        inputs.forEach(input => input.value = '');
+        inputs.forEach(input => input.value = input.id === 'filterSel' ? 'all' : '');
         radios[0].checked = true; // Remet "ET" par défaut
         applyFilters();
     }
 
-    // Ajout des écouteurs d'événements pour le filtrage en temps réel
+    // Ajout des écouteurs d'événements
     inputs.forEach(input => {
         input.addEventListener('input', applyFilters);
         input.addEventListener('change', applyFilters);
