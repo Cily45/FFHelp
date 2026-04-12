@@ -36,7 +36,7 @@
                 </div>
 
                 <button onclick="fetchWeeklyData()" id="apiBtn" class="text-sm bg-indigo-600 text-white px-4 py-2 rounded shadow-sm hover:bg-indigo-700 font-bold transition flex items-center">
-                    <span class="mr-2">📥</span> Charger les données du Mardi
+                    <span class="mr-2">📥</span> Charger le JSON (Mardi)
                 </button>
 
                 <button onclick="clearLocalStorage()" class="text-xs bg-red-100 text-red-600 px-3 py-2 rounded hover:bg-red-200 font-semibold transition" title="Remet tout le marché à l'état Moyen/Suffisant">Vider Marché</button>
@@ -287,7 +287,7 @@
 
     loadFromLocalStorage();
 
-    // CHARGEMENT DU FICHIER JSON EXTERNE
+    // CHARGEMENT DU FICHIER JSON EXTERNE (LE VRAI)
     async function fetchWeeklyData() {
         const btn = document.getElementById('apiBtn');
         const loader = document.getElementById('apiLoader');
@@ -330,7 +330,7 @@
             alert("❌ " + error.message);
         } finally {
             loader.classList.add('hidden');
-            btn.innerHTML = '<span class="mr-2">📥</span> Charger les données du Mardi';
+            btn.innerHTML = '<span class="mr-2">📥</span> Charger le JSON (Mardi)';
             btn.disabled = false;
         }
     }
@@ -471,7 +471,7 @@
     }
 
     function generateWeekly() {
-        saveToLocalStorage(); // Sauvegarde au cas où l'utilisateur a fait des modifs manuelles
+        saveToLocalStorage();
 
         const allowRare = document.getElementById('allowRareExp').checked;
         const activeItems = currentData.filter(d => allowRare || d.exp === 'Non');
