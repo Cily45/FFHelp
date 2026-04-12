@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fabrique de l'Île - Simulateur Hebdomadaire Expert</title>
+    <title>Fabrique de l'Île - Simulateur Hebdomadaire Expert V4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .table-container { max-height: 55vh; overflow-y: auto; }
@@ -25,25 +25,32 @@
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-slate-700">
         <header class="mb-6 border-b pb-4 flex flex-col md:flex-row justify-between md:items-end gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île</h1>
-                <p class="text-slate-500">Planificateur Hebdomadaire & Dynamique du Marché pur</p>
+                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v4.0</span></h1>
+                <p class="text-slate-500">Moteur Économique Pur (Règle des 8 & Faisceau)</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
 
                 <div class="flex items-center space-x-2 bg-emerald-50 px-3 py-1.5 rounded border border-emerald-200 shadow-sm" title="Dernière détection d'un nouveau fichier market_data.json">
                     <span class="text-emerald-600 text-xl">📡</span>
                     <div class="flex flex-col">
-                        <span class="text-[10px] text-emerald-600 font-bold uppercase leading-none">Données du serveur</span>
+                        <span class="text-[10px] text-emerald-600 font-bold uppercase leading-none">Données serveur</span>
                         <span id="lastUpdateText" class="text-xs font-bold text-emerald-800 leading-tight">Vérification...</span>
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-2 bg-indigo-50 px-3 py-1.5 rounded border border-indigo-200 shadow-sm">
-                    <label class="font-bold text-indigo-800 text-sm">Votre Rang d'Île :</label>
-                    <input type="number" id="userRank" min="1" max="20" value="20" class="w-16 border rounded px-2 py-1 outline-none font-bold text-indigo-700 text-center bg-white" onchange="saveRank(); applyFilters();">
+                <div class="flex items-center space-x-4 bg-indigo-50 px-4 py-1.5 rounded border border-indigo-200 shadow-sm">
+                    <div class="flex flex-col items-center">
+                        <label class="text-[10px] font-bold text-indigo-800 uppercase tracking-wide">Rang d'Île</label>
+                        <input type="number" id="userRank" min="1" max="20" value="20" class="w-12 text-sm border-b border-indigo-300 outline-none font-bold text-indigo-700 text-center bg-transparent" onchange="saveSettings(); applyFilters();">
+                    </div>
+                    <div class="w-px h-6 bg-indigo-200"></div>
+                    <div class="flex flex-col items-center" title="La limite maximale de Tension de votre île (dépend de vos monuments construits).">
+                        <label class="text-[10px] font-bold text-indigo-800 uppercase tracking-wide">Tension Max</label>
+                        <input type="number" id="maxGroove" min="0" max="50" value="45" class="w-12 text-sm border-b border-indigo-300 outline-none font-bold text-indigo-700 text-center bg-transparent" onchange="saveSettings();">
+                    </div>
                 </div>
 
-                <button onclick="clearLocalStorage()" class="text-xs bg-red-100 text-red-600 px-3 py-2 rounded hover:bg-red-200 font-semibold transition" title="Remet tout le marché à l'état Moyen/Suffisant et vide le cache">Vider Marché</button>
+                <button onclick="clearLocalStorage()" class="text-xs bg-red-100 text-red-600 px-3 py-2 rounded hover:bg-red-200 font-semibold transition">Vider Cache</button>
                 <span class="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-2 rounded border border-blue-200">
                         <span id="count">0</span> recette(s)
                     </span>
@@ -75,7 +82,7 @@
                 <div class="space-y-2">
                     <label class="block font-semibold text-slate-700">Temps & Éléments Rares</label>
                     <div class="flex space-x-2">
-                        <select id="filterTime" class="w-1/2 border rounded px-2 py-1.5 outline-none focus:border-indigo-500"><option value="">Tous les temps</option><option value="4">4h</option><option value="6">6h</option><option value="8">8h</option></select>
+                        <select id="filterTime" class="w-1/2 border rounded px-2 py-1.5 outline-none focus:border-indigo-500"><option value="">Tous</option><option value="4">4h</option><option value="6">6h</option><option value="8">8h</option></select>
                         <select id="filterExp" class="w-1/2 border rounded px-2 py-1.5 outline-none focus:border-indigo-500"><option value="">Tous</option><option value="Oui">Rare Expéd: Oui</option><option value="Non">Rare Expéd: Non</option></select>
                     </div>
                 </div>
@@ -89,26 +96,28 @@
                 </div>
             </div>
 
-            <div class="mt-4 flex justify-between items-center">
-                <span class="text-xs text-slate-500 italic">💡 L'algorithme générera des plannings uniquement avec les recettes affichées ci-dessous (limitées à votre rang).</span>
+            <div class="mt-4 flex justify-end items-center">
                 <button onclick="resetFilters()" class="text-sm text-slate-500 hover:text-slate-800 underline">Réinitialiser les filtres</button>
             </div>
         </div>
 
         <div class="table-container border border-slate-200 rounded-md relative">
+            <div id="apiLoader" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600 mb-4"></div>
+                <p class="text-indigo-800 font-bold text-lg">Lecture des données...</p>
+            </div>
+
             <table class="w-full text-left border-collapse whitespace-nowrap text-sm">
                 <thead class="bg-slate-200 sticky top-0 shadow-sm z-10">
                 <tr>
-                    <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center w-12 text-indigo-800" onclick="sortTable('lvl')" title="Rang d'île requis">Rang ↕</th>
+                    <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center w-12 text-indigo-800" onclick="sortTable('lvl')">Rang ↕</th>
                     <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('obj')">Recette ↕</th>
-                    <th class="p-2 border-b font-semibold bg-indigo-50 text-indigo-900 border-l border-slate-300 w-36 text-center" title="Tendance d'évolution du marché">📈 Évolution</th>
-                    <th class="p-2 border-b font-semibold bg-orange-100 text-orange-900 border-l border-slate-300 w-32 text-center" title="Popularité (Fixe la semaine)">🔥 Popularité</th>
-                    <th class="p-2 border-b font-semibold bg-emerald-100 text-emerald-900 border-x border-slate-300 w-36 text-center" title="État des stocks du marché">📦 Demande</th>
+                    <th class="p-2 border-b font-semibold bg-indigo-50 text-indigo-900 border-l border-slate-300 w-36 text-center">📈 Évolution</th>
+                    <th class="p-2 border-b font-semibold bg-orange-100 text-orange-900 border-l border-slate-300 w-32 text-center">🔥 Popularité</th>
+                    <th class="p-2 border-b font-semibold bg-emerald-100 text-emerald-900 border-x border-slate-300 w-36 text-center">📦 Demande</th>
                     <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center" onclick="sortTable('t')">Temps ↕</th>
                     <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center" onclick="sortTable('val')">Val. Base ↕</th>
-                    <th class="p-2 border-b font-semibold">Catégories</th>
                     <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center" onclick="sortTable('exp')">Rare Expéd. ↕</th>
-                    <th class="p-2 border-b font-semibold w-full">Ingrédients</th>
                 </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -119,10 +128,10 @@
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-indigo-500">
         <div class="flex flex-col md:flex-row justify-between md:items-end mb-4">
             <div class="mb-4 md:mb-0">
-                <h2 class="text-2xl font-bold text-slate-800 mb-2">Planificateur Hebdomadaire (Mercredi - Dimanche)</h2>
-                <ul class="text-slate-600 text-sm list-disc list-inside space-y-1">
-                    <li><span class="font-semibold text-emerald-600">Capitalisme Pur :</span> L'algorithme assignera le meilleur planning du jour aux 3 Fabriques simultanément.</li>
-                    <li><span class="font-semibold text-indigo-600">Auto-Régulation :</span> L'effondrement de la demande est simulé rigoureusement (-3 crans pour le lendemain).</li>
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Solveur Global (Moteur de Marché FFXIV)</h2>
+                <ul class="text-slate-600 text-sm list-disc list-inside space-y-1 max-w-3xl">
+                    <li><span class="font-semibold text-emerald-600">Loi des 8 :</span> L'algorithme traque chaque objet produit. La demande ne chute (-1 cran) que lorsque le palier de 8 objets expédiés est franchi.</li>
+                    <li><span class="font-semibold text-orange-600">Combo & Expédition simultanée :</span> Contourne intelligemment les pénalités du marché en produisant sur 3 fabriques en même temps (6 unités = 0 pénalité immédiate).</li>
                 </ul>
 
                 <div class="mt-4 inline-block bg-orange-50 border border-orange-200 rounded p-2">
@@ -133,15 +142,16 @@
                 </div>
             </div>
 
-            <button onclick="generateWeekly()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded shadow-lg transition-transform transform hover:scale-105 h-fit">
-                ⚙️ Générer la Semaine
+            <button onclick="generateWeeklyGlobal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105 h-fit text-lg">
+                ⚙️ Lancer le Supercalculateur
             </button>
         </div>
 
         <div id="solverResults" class="hidden mt-6">
-            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-center mb-8 shadow-sm">
-                <h3 class="text-emerald-800 font-bold text-lg uppercase tracking-wider">Revenu Estimé de la Semaine</h3>
-                <div class="text-4xl font-black text-emerald-600 mt-2" id="weekTotalGain">0 <span class="text-xl">Assignats</span></div>
+            <div class="bg-indigo-900 border border-indigo-700 rounded-lg p-5 text-center mb-8 shadow-xl relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                <h3 class="text-indigo-200 font-bold text-sm uppercase tracking-[0.2em] mb-1">Revenu Total Estimé</h3>
+                <div class="text-5xl font-black text-white drop-shadow-md" id="weekTotalGain">0 <span class="text-2xl text-indigo-300">Assignats</span></div>
             </div>
 
             <div id="weeklyGrid" class="space-y-6">
@@ -246,8 +256,9 @@
 
     data.forEach(d => marketData[d.id] = { pop: 'Moyenne', dem: 2, evo: '-' });
 
-    function saveRank() {
+    function saveSettings() {
         localStorage.setItem('fabriqueRank', document.getElementById('userRank').value);
+        localStorage.setItem('maxGroove', document.getElementById('maxGroove').value);
     }
 
     function saveToLocalStorage() {
@@ -259,21 +270,22 @@
         const savedRank = localStorage.getItem('fabriqueRank');
         if (savedRank) document.getElementById('userRank').value = savedRank;
 
+        const savedGroove = localStorage.getItem('maxGroove');
+        if (savedGroove) document.getElementById('maxGroove').value = savedGroove;
+
         const saved = localStorage.getItem('fabriqueSaveFinal');
         if(saved) {
             try {
                 const parsed = JSON.parse(saved);
                 if(parsed.market) {
-                    for(let id in parsed.market) {
-                        marketData[id] = parsed.market[id];
-                    }
+                    for(let id in parsed.market) marketData[id] = parsed.market[id];
                 }
             } catch(e) { console.error("Erreur lecture", e); }
         }
     }
 
     function clearLocalStorage() {
-        if(confirm("Voulez-vous vraiment remettre tout le marché à l'état par défaut (Moyen/Suffisant) ? L'historique local sera effacé.")) {
+        if(confirm("Voulez-vous vider le cache et remettre à zéro le marché ?")) {
             localStorage.removeItem('fabriqueSaveFinal');
             localStorage.removeItem('lastRawJson');
             location.reload();
@@ -326,10 +338,9 @@
                 document.getElementById('lastUpdateText').textContent = "Fichier non trouvé";
             }
         } catch (error) {
-            console.log("Lecture du JSON distant ignorée ou impossible.", error);
+            console.log("Mode Local", error);
             document.getElementById('lastUpdateText').textContent = "Mode Local (Aucun fichier)";
         }
-
         applyFilters();
     }
 
@@ -359,23 +370,11 @@
     function render(filteredData) {
         tableBody.innerHTML = filteredData.map(d => {
             let m = marketData[d.id];
-
             return `
                 <tr class="hover:bg-slate-100 transition-colors">
                     <td class="p-1 border-b text-center font-bold text-indigo-800 bg-indigo-50 border-r border-slate-200">${d.lvl}</td>
                     <td class="p-1 border-b font-medium text-slate-900 pl-2">${d.obj}</td>
-
-                    <td class="p-1 border-b border-l border-slate-200 text-center bg-indigo-50/50">
-                        <select class="select-market select-evo" onchange="updateMarket(${d.id}, 'evo', this.value)">
-                            <option value="Forte augmentation" ${m.evo==='Forte augmentation'?'selected':''}>↑↑ Forte aug.</option>
-                            <option value="Augmentation" ${m.evo==='Augmentation'?'selected':''}>↑ Augmentation</option>
-                            <option value="Constante" ${m.evo==='Constante'?'selected':''}>- Constante</option>
-                            <option value="En baisse" ${m.evo==='En baisse'?'selected':''}>↓ En baisse</option>
-                            <option value="En chute" ${m.evo==='En chute'?'selected':''}>↓↓ En chute</option>
-                        </select>
-                    </td>
-
-                    <td class="p-1 border-b text-center bg-orange-50/50">
+                    <td class="p-1 border-b text-center">
                         <select class="select-market select-pop" onchange="updateMarket(${d.id}, 'pop', this.value)">
                             <option value="Faible" ${m.pop==='Faible'?'selected':''}>Faible (x0.8)</option>
                             <option value="Moyenne" ${m.pop==='Moyenne'?'selected':''}>Moyenne (x1.0)</option>
@@ -383,7 +382,7 @@
                             <option value="Très élevée" ${m.pop==='Très élevée'?'selected':''}>Très élevée (x1.4)</option>
                         </select>
                     </td>
-                    <td class="p-1 border-b border-r border-slate-200 text-center bg-emerald-50/50">
+                    <td class="p-1 border-b text-center">
                         <select class="select-market select-dem" onchange="updateMarket(${d.id}, 'dem', this.value)">
                             <option value="0" ${m.dem===0?'selected':''}>Excédentaire (x0.6)</option>
                             <option value="1" ${m.dem===1?'selected':''}>En surplus (x0.8)</option>
@@ -392,15 +391,9 @@
                             <option value="4" ${m.dem===4?'selected':''}>Introuvable (x1.6)</option>
                         </select>
                     </td>
-
                     <td class="p-1 border-b text-center font-bold text-slate-700">${d.t}h</td>
                     <td class="p-1 border-b text-slate-600 font-mono text-center">${d.val}</td>
-                    <td class="p-1 border-b text-xs">
-                        <span class="inline-block bg-slate-200 px-1 py-0.5 rounded mb-1">${d.c1}</span>
-                        ${d.c2 ? `<span class="inline-block bg-slate-100 px-1 py-0.5 rounded italic border">${d.c2}</span>` : ''}
-                    </td>
                     <td class="p-1 border-b text-center"><span class="${d.exp === 'Oui' ? 'text-orange-600 font-bold bg-orange-100 px-2 py-1 rounded' : 'text-slate-400'}">${d.exp}</span></td>
-                    <td class="p-1 border-b text-[10px] text-slate-500 whitespace-normal min-w-[150px] leading-tight">${d.ing.split(' | ').join('<br>')}</td>
                 </tr>
             `}).join('');
         countSpan.textContent = filteredData.length;
@@ -425,7 +418,6 @@
 
         currentData = data.filter(d => {
             if (d.lvl > userRank) return false;
-
             if (sObj && !d.obj.toLowerCase().includes(sObj)) return false;
             if (sIng && !d.ing.toLowerCase().includes(sIng)) return false;
             if (d.val < (parseInt(minV)||0) || d.val > (parseInt(maxV)||9999)) return false;
@@ -455,23 +447,27 @@
     inputs.forEach(input => { input.addEventListener('input', applyFilters); input.addEventListener('change', applyFilters); });
     radios.forEach(radio => radio.addEventListener('change', applyFilters));
 
-    initMarketData();
+    // ==========================================
+    // V4: LOI DES 8 & BEAM SEARCH
+    // ==========================================
 
-    // ==========================================
-    // SOLVER HEBDOMADAIRE OPTIMISÉ
-    // ==========================================
-    function calculateRealValue(item, demandLevel) {
+    // Calcule la valeur d'un objet en fonction de la popularité, et de la demande EFFECTIVE (calculée)
+    function getRealValWithFormula(item, effectiveDemLevel) {
         let m = marketData[item.id];
         let popMult = POP_MULT[m.pop];
-        let demMult = DEM_MULT[demandLevel];
+        // Sécurité pour éviter de chercher un index négatif dans le tableau
+        let demMult = DEM_MULT[Math.max(0, effectiveDemLevel)];
         return Math.floor(item.val * popMult * demMult);
     }
 
-    function generateWeekly() {
-        saveToLocalStorage();
+    const BEAM_WIDTH = 25;
+
+    function generateWeeklyGlobal() {
+        saveSettings();
 
         const allowRare = document.getElementById('allowRareExp').checked;
         const activeItems = currentData.filter(d => allowRare || d.exp === 'Non');
+        const maxGroove = parseInt(document.getElementById('maxGroove').value) || 0;
 
         if (activeItems.length === 0) {
             alert("Aucune recette disponible avec les filtres actuels.");
@@ -480,11 +476,11 @@
 
         document.getElementById('solverResults').classList.remove('hidden');
         const grid = document.getElementById('weeklyGrid');
-        grid.innerHTML = '<div class="text-center p-8 text-indigo-600 font-bold animate-pulse">Calcul de la semaine en cours... (Cela peut prendre quelques secondes)</div>';
+        grid.innerHTML = '<div class="text-center p-12"><div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div><div class="text-indigo-800 font-bold text-xl">Simulation des marchés en cours...</div><div class="text-sm text-indigo-500 mt-2">Suivi de la règle de l\'expédition par paliers de 8</div></div>';
 
         setTimeout(() => {
-            let dynamicDemands = {};
-            data.forEach(d => dynamicDemands[d.id] = marketData[d.id].dem);
+            let initialDemands = {};
+            data.forEach(d => initialDemands[d.id] = marketData[d.id].dem);
 
             const adjacency = {};
             activeItems.forEach(item1 => {
@@ -496,97 +492,127 @@
                 });
             });
 
-            const weekDays = ['Jour 1 (Mercredi)', 'Jour 2 (Jeudi)', 'Jour 3 (Vendredi)', 'Jour 4 (Samedi)', 'Jour 5 (Dimanche)'];
-            let weeklyPlan = [];
-            let totalWeeklyGain = 0;
+            let allPossibleDailySchedules = generateAllDailyPaths(activeItems, adjacency);
 
-            for (let dayIndex = 0; dayIndex < 5; dayIndex++) {
-                let bestSchedulesBySet = new Map();
+            let beam = [{
+                history: [],
+                producedCount: {}, // Compteur exact d'objets fabriqués au lieu d'une chute globale
+                groove: 0,
+                totalGain: 0
+            }];
 
-                dfsSchedulesDay([], 0, 0, activeItems, adjacency, bestSchedulesBySet, dynamicDemands);
+            for (let day = 0; day < 5; day++) {
+                let newBeam = [];
 
-                let daySchedules = Array.from(bestSchedulesBySet.values());
+                for (let state of beam) {
+                    for (let pathDef of allPossibleDailySchedules) {
 
-                let bestSchedule = daySchedules.sort((a, b) => b.gain - a.gain)[0];
-                let top3 = bestSchedule ? [bestSchedule, bestSchedule, bestSchedule] : [];
+                        let tempProduced = {...state.producedCount};
+                        let currentGroove = state.groove;
+                        let dailyGain = 0;
+                        let richPath = [];
 
-                weeklyPlan.push({ dayName: weekDays[dayIndex], schedules: top3 });
+                        for (let i = 0; i < pathDef.length; i++) {
+                            let item = pathDef[i];
+                            let isCombo = (i > 0);
 
-                if(bestSchedule) {
-                    bestSchedule.path.forEach(step => {
-                        dynamicDemands[step.item.id] = Math.max(0, dynamicDemands[step.item.id] - 3);
-                    });
-                    totalWeeklyGain += (bestSchedule.gain * 3);
+                            // CALCUL DE LA DEMANDE EFFECTIVE: -1 cran tous les 8 objets produits
+                            let currentItemsProduced = tempProduced[item.id] || 0;
+                            let demandDrops = Math.floor(currentItemsProduced / 8);
+                            let currentDemLevel = Math.max(0, initialDemands[item.id] - demandDrops);
+
+                            // PRIX
+                            let baseVal = getRealValWithFormula(item, currentDemLevel);
+                            let valWithCombo = isCombo ? baseVal * 2 : baseVal;
+                            let stepGain = Math.floor(valWithCombo * (1 + currentGroove / 100));
+
+                            // ON SIMULE 3 FABRIQUES
+                            let realStepGain = stepGain * 3;
+                            dailyGain += realStepGain;
+
+                            richPath.push({ item: item, combo: isCombo, stepGain: stepGain, currentGroove: currentGroove, effDem: currentDemLevel });
+
+                            // MISE A JOUR DES COMPTEURS (Apres l'export)
+                            // Une fabrique produit 1 unité (ou 2 si combo). Multiplié par 3 fabriques.
+                            let addedUnits = (isCombo ? 2 : 1) * 3;
+                            tempProduced[item.id] = currentItemsProduced + addedUnits;
+
+                            if (isCombo) {
+                                currentGroove = Math.min(maxGroove, currentGroove + 3);
+                            }
+                        }
+
+                        newBeam.push({
+                            history: [...state.history, { path: richPath, gain: dailyGain, endGroove: currentGroove }],
+                            producedCount: tempProduced,
+                            groove: currentGroove,
+                            totalGain: state.totalGain + dailyGain
+                        });
+                    }
                 }
+
+                newBeam.sort((a, b) => b.totalGain - a.totalGain);
+                beam = newBeam.slice(0, BEAM_WIDTH);
             }
 
-            renderWeekly(weeklyPlan, totalWeeklyGain);
+            let bestWeek = beam[0];
+
+            const weekDays = ['Jour 1 (Mercredi)', 'Jour 2 (Jeudi)', 'Jour 3 (Vendredi)', 'Jour 4 (Samedi)', 'Jour 5 (Dimanche)'];
+            let finalPlan = bestWeek.history.map((dayData, index) => {
+                return { dayName: weekDays[index], schedule: dayData };
+            });
+
+            renderWeeklyV4(finalPlan, bestWeek.totalGain);
         }, 50);
     }
 
-    function dfsSchedulesDay(currentSeq, currentGain, currentTime, activeItems, adjacency, bestSchedulesBySet, dynamicDemands) {
-        let canAddMore = false;
-        let possibleItems = currentSeq.length === 0 ? activeItems : adjacency[currentSeq[currentSeq.length - 1].item.id];
+    function generateAllDailyPaths(activeItems, adjacency) {
+        let validPaths = [];
+        function dfs(currentSeq, currentTime) {
+            let canAddMore = false;
+            let possibleItems = currentSeq.length === 0 ? activeItems : adjacency[currentSeq[currentSeq.length - 1].id];
 
-        for (let i = 0; i < possibleItems.length; i++) {
-            let item = possibleItems[i];
-
-            if (currentTime + item.t <= 24) {
-                canAddMore = true;
-                let isCombo = currentSeq.length > 0;
-
-                let baseRealVal = calculateRealValue(item, dynamicDemands[item.id]);
-                let stepGain = isCombo ? baseRealVal * 2 : baseRealVal;
-
-                currentSeq.push({ item: item, combo: isCombo, stepGain: stepGain });
-
-                dfsSchedulesDay(currentSeq, currentGain + stepGain, currentTime + item.t, activeItems, adjacency, bestSchedulesBySet, dynamicDemands);
-
-                currentSeq.pop();
+            for (let i = 0; i < possibleItems.length; i++) {
+                let item = possibleItems[i];
+                if (currentTime + item.t <= 24) {
+                    canAddMore = true;
+                    currentSeq.push(item);
+                    dfs(currentSeq, currentTime + item.t);
+                    currentSeq.pop();
+                }
             }
-        }
 
-        if (!canAddMore && currentTime > 0) {
-            const rem = 24 - currentTime;
-            if (rem === 0 || rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0) {
-                const signature = currentSeq.map(s => s.item.id).join('-');
-                let existing = bestSchedulesBySet.get(signature);
-
-                if (!existing || currentGain > existing.gain) {
-                    bestSchedulesBySet.set(signature, {
-                        path: currentSeq.map(s => ({ item: s.item, combo: s.combo, stepGain: s.stepGain })),
-                        gain: currentGain,
-                        time: currentTime,
-                        eff: currentGain / currentTime
-                    });
+            if (!canAddMore && currentTime > 0) {
+                const rem = 24 - currentTime;
+                if (rem === 0 || rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0) {
+                    validPaths.push([...currentSeq]);
                 }
             }
         }
+        dfs([], 0);
+        return validPaths;
     }
 
-    function renderWeekly(weeklyPlan, totalGain) {
-        document.getElementById('weekTotalGain').innerHTML = totalGain + ' <span class="text-xl font-normal">Assignats</span>';
+    function renderWeeklyV4(weeklyPlan, totalGain) {
+        document.getElementById('weekTotalGain').innerHTML = totalGain + ' <span class="text-2xl text-indigo-300">Assignats</span>';
         const grid = document.getElementById('weeklyGrid');
 
         grid.innerHTML = weeklyPlan.map(day => {
-            if (day.schedules.length === 0) {
-                return `
-                        <div class="bg-white rounded-lg border border-slate-200 p-4 shadow-sm">
-                            <h3 class="font-bold text-lg text-slate-800 border-b pb-2 mb-3">${day.dayName}</h3>
-                            <div class="text-slate-500 italic text-center py-4">Pas de combinaison trouvée.</div>
-                        </div>
-                    `;
-            }
-
-            // Récupération de l'unique planning du jour (le meilleur)
-            let s = day.schedules[0];
-
+            let s = day.schedule;
             let htmlPath = s.path.map((step, i) => {
                 let color = step.combo ? 'bg-emerald-100 border-emerald-300 text-emerald-800 font-semibold' : 'bg-white border-slate-200 text-slate-700';
                 let arrow = i < s.path.length - 1 ? `<span class="mx-1 text-slate-400 font-bold text-xs">➔</span>` : '';
+                let grooveTag = `<span class="text-[9px] font-black text-indigo-500 ml-1" title="Tension à l'heure du craft">T:${step.currentGroove}</span>`;
+
+                // Petite astuce visuelle si la demande a chuté pendant la semaine pour cet objet
+                let dropWarning = '';
+                if(step.effDem < marketData[step.item.id].dem) {
+                    dropWarning = `<span class="text-[9px] text-red-500 font-black ml-1" title="La demande a chuté suite à vos productions précédentes">📉</span>`;
+                }
+
                 return `<div class="inline-flex items-center mt-1">
-                                <span class="border px-1.5 py-0.5 rounded text-xs whitespace-nowrap ${color} shadow-sm">
-                                    ${step.item.obj}
+                                <span class="border px-1.5 py-0.5 rounded text-xs whitespace-nowrap ${color} shadow-sm flex items-center">
+                                    ${step.item.obj} ${grooveTag} ${dropWarning}
                                 </span>${arrow}
                             </div>`;
             }).join('');
@@ -598,20 +624,17 @@
                             <div class="flex flex-wrap items-center">${htmlPath}</div>
                         </div>
                         <div class="flex items-center mt-3 md:mt-0 space-x-4 border-t md:border-t-0 md:border-l border-slate-200 pt-2 md:pt-0 md:pl-4">
-                            <div class="text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Durée</div><div class="font-mono font-bold text-indigo-900">${s.time}h</div></div>
-                            <div class="text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Gain/h (x1)</div><div class="font-bold text-blue-600">${s.eff.toFixed(1)}</div></div>
-                            <div class="text-center"><div class="text-[10px] text-emerald-600 uppercase font-bold">Revenu (x3)</div><div class="font-black text-emerald-600 text-lg">${s.gain * 3}</div></div>
+                            <div class="text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Fin Jour</div><div class="font-bold text-indigo-600">Tension ${s.endGroove}</div></div>
+                            <div class="text-center"><div class="text-[10px] text-emerald-600 uppercase font-bold">Revenu (x3)</div><div class="font-black text-emerald-600 text-lg">${s.gain}</div></div>
                         </div>
                     </div>
                 `;
-
-            let dayTotal = s.gain * 3;
 
             return `
                     <div class="bg-white rounded-lg border border-slate-300 p-4 shadow-sm hover:shadow-md transition-shadow">
                         <div class="flex justify-between items-end border-b pb-2 mb-2">
                             <h3 class="font-bold text-xl text-slate-800">${day.dayName}</h3>
-                            <span class="font-black text-emerald-600">+ ${dayTotal}</span>
+                            <span class="font-black text-emerald-600">+ ${s.gain}</span>
                         </div>
                         <div class="space-y-1">
                             ${dayHtml}
