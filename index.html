@@ -25,7 +25,7 @@
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-slate-700">
         <header class="mb-6 border-b pb-4 flex flex-col md:flex-row justify-between md:items-end gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v5.1</span></h1>
+                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v5.2</span></h1>
                 <p class="text-slate-500">Moteur Économique Pur (Règle des 8 & Faisceau Rapide)</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
@@ -102,6 +102,11 @@
         </div>
 
         <div class="table-container border border-slate-200 rounded-md relative">
+            <div id="apiLoader" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600 mb-4"></div>
+                <p class="text-indigo-800 font-bold text-lg">Lecture des données...</p>
+            </div>
+
             <table class="w-full text-left border-collapse whitespace-nowrap text-sm">
                 <thead class="bg-slate-200 sticky top-0 shadow-sm z-10">
                 <tr>
@@ -143,6 +148,9 @@
         </div>
 
         <div id="solverResults" class="hidden mt-6">
+            <div id="validityDateBox" class="bg-blue-50 border border-blue-200 text-blue-800 text-sm p-3 rounded-lg text-center mb-6 shadow-sm">
+            </div>
+
             <div class="bg-indigo-900 border border-indigo-700 rounded-lg p-5 text-center mb-8 shadow-xl relative overflow-hidden">
                 <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
                 <h3 class="text-indigo-200 font-bold text-sm uppercase tracking-[0.2em] mb-1">Revenu Total Estimé</h3>
@@ -157,7 +165,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-orange-50 border border-orange-200 rounded-md p-4">
                         <h4 class="font-bold text-orange-800 mb-3 text-sm uppercase tracking-wide border-b border-orange-200 pb-1">⚓ Matériaux d'Expédition Rares</h4>
-                        <ul id="rareMaterialsList" class="space-y-2 text-sm"></ul>
+                        <ul id="rareMaterialsList" class="space-y-3 text-sm"></ul>
                     </div>
                     <div class="bg-white border border-slate-200 rounded-md p-4">
                         <h4 class="font-bold text-slate-700 mb-3 text-sm uppercase tracking-wide border-b border-slate-200 pb-1">🌿 Matériaux Classiques & Élevage</h4>
@@ -255,7 +263,6 @@
         { lvl: 7, obj: "Vinaigrette manufacturée", t: 4, val: 52, c1: "Condiment", c2: "", exp: "Non", ing: "2 x Oignon exotique | 1 x Sève insulaire | 1 x Sargasse tamamo insulaire" }
     ];
 
-    // Liste stricte des expéditions
     const RARE_MATS = ["Minerai d'argent insulaire", "Rondin d'épicéa insulaire", "Alysson insulaire", "Requin-marteau insulaire", "Grenat brut insulaire"];
 
     const POP_MULT = { 'Faible': 0.8, 'Moyenne': 1.0, 'Élevée': 1.2, 'Très élevée': 1.4 };
@@ -308,7 +315,6 @@
 
     async function initMarketData() {
         loadFromLocalStorage();
-        // On affiche le tableau immédiatement
         applyFilters();
 
         try {
@@ -356,7 +362,6 @@
         } catch (error) {
             document.getElementById('lastUpdateText').textContent = "Mode Local";
         }
-        // On rafraichit le tableau avec les nouvelles données
         applyFilters();
     }
 
@@ -471,11 +476,10 @@
     inputs.forEach(input => { if(input) { input.addEventListener('input', applyFilters); input.addEventListener('change', applyFilters); } });
     radios.forEach(radio => radio.addEventListener('change', applyFilters));
 
-    // LANCEMENT DU JAVASCRIPT
     initMarketData();
 
     // ==========================================
-    // V5: SUPER BEAM SEARCH OPTIMISÉ (ANTI-CRASH)
+    // V5: SUPER BEAM SEARCH OPTIMISÉ
     // ==========================================
 
     function getRealValWithFormula(item, effectiveDemLevel) {
@@ -503,7 +507,7 @@
         document.getElementById('solverResults').classList.remove('hidden');
         document.getElementById('shoppingListContainer').classList.add('hidden');
         const grid = document.getElementById('weeklyGrid');
-        grid.innerHTML = '<div class="text-center p-12"><div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div><div class="text-indigo-800 font-bold text-xl">Simulation par faisceau en cours...</div><div class="text-sm text-indigo-500 mt-2">Génération des plannings sans saturer la mémoire</div></div>';
+        grid.innerHTML = '<div class="text-center p-12"><div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div><div class="text-indigo-800 font-bold text-xl">Simulation par faisceau en cours...</div><div class="text-sm text-indigo-500 mt-2">Génération des plannings et calcul des ressources</div></div>';
 
         setTimeout(() => {
             let initialDemands = {};
@@ -526,7 +530,7 @@
                 totalGain: 0
             }];
 
-            const weekDays = ['Jour 1 (Mercredi)', 'Jour 2 (Jeudi)', 'Jour 3 (Vendredi)', 'Jour 4 (Samedi)', 'Jour 5 (Dimanche)'];
+            const weekDays = ['Jour 1', 'Jour 2', 'Jour 3', 'Jour 4', 'Jour 5'];
 
             for (let day = 0; day < 5; day++) {
                 let newBeam = [];
@@ -651,9 +655,31 @@
                 return { dayName: weekDays[index], schedule: dayData };
             });
 
+            renderValidityDate(); // Affichage de la date de la semaine en cours
             renderWeeklyV5(finalPlan, bestWeek.totalGain);
             renderShoppingList(finalPlan);
         }, 50);
+    }
+
+    // Fonction pour afficher la période de validité de la semaine de l'Île
+    function renderValidityDate() {
+        const now = new Date();
+        const dayOfWeek = now.getDay(); // 0 = Dimanche, 1 = Lundi, 2 = Mardi...
+
+        // Calculer la différence pour revenir au mardi le plus récent
+        const diffToTuesday = (dayOfWeek >= 2) ? (dayOfWeek - 2) : (dayOfWeek + 5);
+
+        const lastTuesday = new Date(now);
+        lastTuesday.setDate(now.getDate() - diffToTuesday);
+
+        const nextMonday = new Date(lastTuesday);
+        nextMonday.setDate(lastTuesday.getDate() + 6);
+
+        const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        const strStart = lastTuesday.toLocaleDateString('fr-FR', options);
+        const strEnd = nextMonday.toLocaleDateString('fr-FR', options);
+
+        document.getElementById('validityDateBox').innerHTML = `ℹ️ Les données et ce planning sont valables pour la semaine du <strong>${strStart}</strong> au <strong>${strEnd}</strong>.`;
     }
 
     function renderWeeklyV5(weeklyPlan, totalGain) {
@@ -708,12 +734,14 @@
     }
 
     // ==========================================
-    // LISTE DE COURSES
+    // LISTE DE COURSES AVEC DÉTAIL PAR JOUR
     // ==========================================
     function renderShoppingList(finalPlan) {
         let materials = {};
 
         finalPlan.forEach(day => {
+            let dayName = day.dayName; // Ex: "Jour 1"
+
             day.schedule.path.forEach(step => {
                 let item = step.item;
                 let ings = item.ing.split(" | ");
@@ -721,7 +749,13 @@
                     let parts = ing.split(" x ");
                     let qty = parseInt(parts[0]) * 3;
                     let name = parts[1];
-                    materials[name] = (materials[name] || 0) + qty;
+
+                    if (!materials[name]) {
+                        materials[name] = { total: 0, byDay: {} };
+                    }
+
+                    materials[name].total += qty;
+                    materials[name].byDay[dayName] = (materials[name].byDay[dayName] || 0) + qty;
                 });
             });
         });
@@ -730,15 +764,32 @@
         let commonHtml = "";
 
         Object.keys(materials).sort().forEach(name => {
-            let qty = materials[name];
+            let mat = materials[name];
+
             if (RARE_MATS.includes(name)) {
-                rareHtml += `<li class="flex justify-between items-center border-b border-orange-200/50 py-1 last:border-0"><span class="text-orange-900">${name}</span> <span class="font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded">x${qty}</span></li>`;
+                // Création de la petite ligne de détail sous le total
+                let details = Object.entries(mat.byDay)
+                    .filter(([_, q]) => q > 0)
+                    .map(([d, q]) => `${d}: <span class="font-semibold">x${q}</span>`)
+                    .join(" | ");
+
+                rareHtml += `
+                        <li class="flex flex-col border-b border-orange-200/50 py-1.5 last:border-0">
+                            <div class="flex justify-between items-center">
+                                <span class="text-orange-900 font-medium">${name}</span>
+                                <span class="font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded">Total: x${mat.total}</span>
+                            </div>
+                            <div class="text-[11px] text-orange-600/80 mt-0.5 tracking-wide">${details}</div>
+                        </li>`;
             } else {
-                commonHtml += `<li class="flex justify-between items-center border-b border-slate-200/50 py-1 last:border-0"><span class="text-slate-600">${name}</span> <span class="font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">x${qty}</span></li>`;
+                commonHtml += `
+                        <li class="flex justify-between items-center border-b border-slate-200/50 py-1 last:border-0">
+                            <span class="text-slate-600">${name}</span>
+                            <span class="font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">x${mat.total}</span>
+                        </li>`;
             }
         });
 
-        // LA LIGNE CORRIGÉE : Utilisation de guillemets simples à l'intérieur
         document.getElementById('rareMaterialsList').innerHTML = rareHtml || "<li class='text-slate-400 italic'>Aucun pour ce planning</li>";
         document.getElementById('commonMaterialsList').innerHTML = commonHtml;
         document.getElementById('shoppingListContainer').classList.remove('hidden');
