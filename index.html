@@ -26,7 +26,7 @@
         <header class="mb-6 border-b pb-4 flex flex-col md:flex-row justify-between md:items-end gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île</h1>
-                <p class="text-slate-500">Planificateur Hebdomadaire & Algorithme de Marché Pur</p>
+                <p class="text-slate-500">Planificateur Hebdomadaire & Dynamique du Marché pur</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
 
@@ -121,8 +121,8 @@
             <div class="mb-4 md:mb-0">
                 <h2 class="text-2xl font-bold text-slate-800 mb-2">Planificateur Hebdomadaire (Mercredi - Dimanche)</h2>
                 <ul class="text-slate-600 text-sm list-disc list-inside space-y-1">
-                    <li><span class="font-semibold text-emerald-600">Capitalisme Pur :</span> L'algorithme assignera le meilleur planning du jour aux 3 Fabriques s'il est extrêmement rentable.</li>
-                    <li><span class="font-semibold text-indigo-600">Auto-Régulation :</span> L'effondrement de la demande est simulé rigoureusement. Fabriquer un objet en triple fera chuter sa demande de 3 crans pour le lendemain !</li>
+                    <li><span class="font-semibold text-emerald-600">Capitalisme Pur :</span> L'algorithme assignera le meilleur planning du jour aux 3 Fabriques simultanément.</li>
+                    <li><span class="font-semibold text-indigo-600">Auto-Régulation :</span> L'effondrement de la demande est simulé rigoureusement (-3 crans pour le lendemain).</li>
                 </ul>
 
                 <div class="mt-4 inline-block bg-orange-50 border border-orange-200 rounded p-2">
@@ -280,9 +280,6 @@
         }
     }
 
-    // ==========================================
-    // AUTO-SYNCHRONISATION AU CHARGEMENT
-    // ==========================================
     async function initMarketData() {
         loadFromLocalStorage();
 
@@ -461,7 +458,7 @@
     initMarketData();
 
     // ==========================================
-    // SOLVER HEBDOMADAIRE (AVEC CHOIX DES FABRIQUES)
+    // SOLVER HEBDOMADAIRE OPTIMISÉ
     // ==========================================
     function calculateRealValue(item, demandLevel) {
         let m = marketData[item.id];
@@ -510,13 +507,11 @@
 
                 let daySchedules = Array.from(bestSchedulesBySet.values());
 
-                // NOUVELLE LOGIQUE : Le meilleur planning est assigné aux 3 fabriques
                 let bestSchedule = daySchedules.sort((a, b) => b.gain - a.gain)[0];
                 let top3 = bestSchedule ? [bestSchedule, bestSchedule, bestSchedule] : [];
 
                 weeklyPlan.push({ dayName: weekDays[dayIndex], schedules: top3 });
 
-                // Baisse de la demande : Si cloné 3 fois, la demande baisse de 3 crans
                 if(bestSchedule) {
                     bestSchedule.path.forEach(step => {
                         dynamicDemands[step.item.id] = Math.max(0, dynamicDemands[step.item.id] - 3);
@@ -583,33 +578,34 @@
                     `;
             }
 
-            let dayHtml = day.schedules.map((s, idx) => {
-                let htmlPath = s.path.map((step, i) => {
-                    let color = step.combo ? 'bg-emerald-100 border-emerald-300 text-emerald-800 font-semibold' : 'bg-white border-slate-200 text-slate-700';
-                    let arrow = i < s.path.length - 1 ? `<span class="mx-1 text-slate-400 font-bold text-xs">➔</span>` : '';
-                    return `<div class="inline-flex items-center mt-1">
-                                    <span class="border px-1.5 py-0.5 rounded text-xs whitespace-nowrap ${color} shadow-sm">
-                                        ${step.item.obj}
-                                    </span>${arrow}
-                                </div>`;
-                }).join('');
+            // Récupération de l'unique planning du jour (le meilleur)
+            let s = day.schedules[0];
 
-                return `
-                        <div class="flex flex-col md:flex-row md:items-center justify-between bg-slate-50 border border-slate-100 p-3 rounded-md mt-2">
-                            <div class="flex-1 pr-4">
-                                <div class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">Fabrique ${idx + 1}</div>
-                                <div class="flex flex-wrap items-center">${htmlPath}</div>
-                            </div>
-                            <div class="flex items-center mt-3 md:mt-0 space-x-4 border-t md:border-t-0 md:border-l border-slate-200 pt-2 md:pt-0 md:pl-4">
-                                <div class="text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Durée</div><div class="font-mono font-bold text-indigo-900">${s.time}h</div></div>
-                                <div class="text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Gain/h</div><div class="font-bold text-blue-600">${s.eff.toFixed(1)}</div></div>
-                                <div class="text-center"><div class="text-[10px] text-emerald-600 uppercase font-bold">Revenu</div><div class="font-black text-emerald-600 text-lg">${s.gain}</div></div>
-                            </div>
-                        </div>
-                    `;
+            let htmlPath = s.path.map((step, i) => {
+                let color = step.combo ? 'bg-emerald-100 border-emerald-300 text-emerald-800 font-semibold' : 'bg-white border-slate-200 text-slate-700';
+                let arrow = i < s.path.length - 1 ? `<span class="mx-1 text-slate-400 font-bold text-xs">➔</span>` : '';
+                return `<div class="inline-flex items-center mt-1">
+                                <span class="border px-1.5 py-0.5 rounded text-xs whitespace-nowrap ${color} shadow-sm">
+                                    ${step.item.obj}
+                                </span>${arrow}
+                            </div>`;
             }).join('');
 
-            let dayTotal = day.schedules[0].gain * 3;
+            let dayHtml = `
+                    <div class="flex flex-col md:flex-row md:items-center justify-between bg-slate-50 border border-slate-100 p-3 rounded-md mt-2">
+                        <div class="flex-1 pr-4">
+                            <div class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">Fabriques 1, 2 & 3</div>
+                            <div class="flex flex-wrap items-center">${htmlPath}</div>
+                        </div>
+                        <div class="flex items-center mt-3 md:mt-0 space-x-4 border-t md:border-t-0 md:border-l border-slate-200 pt-2 md:pt-0 md:pl-4">
+                            <div class="text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Durée</div><div class="font-mono font-bold text-indigo-900">${s.time}h</div></div>
+                            <div class="text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Gain/h (x1)</div><div class="font-bold text-blue-600">${s.eff.toFixed(1)}</div></div>
+                            <div class="text-center"><div class="text-[10px] text-emerald-600 uppercase font-bold">Revenu (x3)</div><div class="font-black text-emerald-600 text-lg">${s.gain * 3}</div></div>
+                        </div>
+                    </div>
+                `;
+
+            let dayTotal = s.gain * 3;
 
             return `
                     <div class="bg-white rounded-lg border border-slate-300 p-4 shadow-sm hover:shadow-md transition-shadow">
