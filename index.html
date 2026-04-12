@@ -25,15 +25,15 @@
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-slate-700">
         <header class="mb-6 border-b pb-4 flex flex-col md:flex-row justify-between md:items-end gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v5.0</span></h1>
+                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v5.1</span></h1>
                 <p class="text-slate-500">Moteur Économique Pur (Règle des 8 & Faisceau Rapide)</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
 
-                <div class="flex items-center space-x-2 bg-emerald-50 px-3 py-1.5 rounded border border-emerald-200 shadow-sm" title="Dernière détection d'un nouveau fichier market_data.json">
-                    <span class="text-emerald-600 text-xl">📡</span>
+                <div class="flex items-center space-x-2 bg-emerald-50 px-3 py-1.5 rounded border border-emerald-200 shadow-sm" title="Statut du fichier market_data.json">
+                    <span class="text-emerald-600 text-xl">📄</span>
                     <div class="flex flex-col">
-                        <span class="text-[10px] text-emerald-600 font-bold uppercase leading-none">Données serveur</span>
+                        <span class="text-[10px] text-emerald-600 font-bold uppercase leading-none">Fichier JSON</span>
                         <span id="lastUpdateText" class="text-xs font-bold text-emerald-800 leading-tight">Vérification...</span>
                     </div>
                 </div>
@@ -102,11 +102,6 @@
         </div>
 
         <div class="table-container border border-slate-200 rounded-md relative">
-            <div id="apiLoader" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
-                <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600 mb-4"></div>
-                <p class="text-indigo-800 font-bold text-lg">Lecture des données...</p>
-            </div>
-
             <table class="w-full text-left border-collapse whitespace-nowrap text-sm">
                 <thead class="bg-slate-200 sticky top-0 shadow-sm z-10">
                 <tr>
@@ -260,7 +255,7 @@
         { lvl: 7, obj: "Vinaigrette manufacturée", t: 4, val: 52, c1: "Condiment", c2: "", exp: "Non", ing: "2 x Oignon exotique | 1 x Sève insulaire | 1 x Sargasse tamamo insulaire" }
     ];
 
-    // Liste en dur des 5 matériaux d'expédition (Granary) pour les surligner
+    // Liste stricte des expéditions
     const RARE_MATS = ["Minerai d'argent insulaire", "Rondin d'épicéa insulaire", "Alysson insulaire", "Requin-marteau insulaire", "Grenat brut insulaire"];
 
     const POP_MULT = { 'Faible': 0.8, 'Moyenne': 1.0, 'Élevée': 1.2, 'Très élevée': 1.4 };
@@ -313,6 +308,7 @@
 
     async function initMarketData() {
         loadFromLocalStorage();
+        // On affiche le tableau immédiatement
         applyFilters();
 
         try {
@@ -355,12 +351,12 @@
                     document.getElementById('lastUpdateText').textContent = localStorage.getItem('lastUpdateDate') || dateStr;
                 }
             } else {
-                document.getElementById('lastUpdateText').textContent = "Fichier non trouvé";
+                document.getElementById('lastUpdateText').textContent = "Non trouvé";
             }
         } catch (error) {
-            console.log("Mode Local", error);
-            document.getElementById('lastUpdateText').textContent = "Mode Local (Aucun fichier)";
+            document.getElementById('lastUpdateText').textContent = "Mode Local";
         }
+        // On rafraichit le tableau avec les nouvelles données
         applyFilters();
     }
 
@@ -475,10 +471,11 @@
     inputs.forEach(input => { if(input) { input.addEventListener('input', applyFilters); input.addEventListener('change', applyFilters); } });
     radios.forEach(radio => radio.addEventListener('change', applyFilters));
 
+    // LANCEMENT DU JAVASCRIPT
     initMarketData();
 
     // ==========================================
-    // V5: SUPER BEAM SEARCH OPTIMISÉ
+    // V5: SUPER BEAM SEARCH OPTIMISÉ (ANTI-CRASH)
     // ==========================================
 
     function getRealValWithFormula(item, effectiveDemLevel) {
@@ -504,9 +501,9 @@
         }
 
         document.getElementById('solverResults').classList.remove('hidden');
-        document.getElementById('shoppingListContainer').classList.add('hidden'); // On cache l'ancienne liste
+        document.getElementById('shoppingListContainer').classList.add('hidden');
         const grid = document.getElementById('weeklyGrid');
-        grid.innerHTML = '<div class="text-center p-12"><div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div><div class="text-indigo-800 font-bold text-xl">Simulation par faisceau en cours...</div><div class="text-sm text-indigo-500 mt-2">Génération des plannings et calcul des ressources</div></div>';
+        grid.innerHTML = '<div class="text-center p-12"><div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div><div class="text-indigo-800 font-bold text-xl">Simulation par faisceau en cours...</div><div class="text-sm text-indigo-500 mt-2">Génération des plannings sans saturer la mémoire</div></div>';
 
         setTimeout(() => {
             let initialDemands = {};
@@ -716,14 +713,13 @@
     function renderShoppingList(finalPlan) {
         let materials = {};
 
-        // Compilation des ingrédients du planning final
         finalPlan.forEach(day => {
             day.schedule.path.forEach(step => {
                 let item = step.item;
                 let ings = item.ing.split(" | ");
                 ings.forEach(ing => {
                     let parts = ing.split(" x ");
-                    let qty = parseInt(parts[0]) * 3; // Multiplié par nos 3 fabriques
+                    let qty = parseInt(parts[0]) * 3;
                     let name = parts[1];
                     materials[name] = (materials[name] || 0) + qty;
                 });
@@ -733,11 +729,8 @@
         let rareHtml = "";
         let commonHtml = "";
 
-        // Tri alphabétique des clés pour un affichage propre
         Object.keys(materials).sort().forEach(name => {
             let qty = materials[name];
-
-            // Si l'ingrédient fait partie de la liste connue des expéditions
             if (RARE_MATS.includes(name)) {
                 rareHtml += `<li class="flex justify-between items-center border-b border-orange-200/50 py-1 last:border-0"><span class="text-orange-900">${name}</span> <span class="font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded">x${qty}</span></li>`;
             } else {
@@ -745,7 +738,8 @@
             }
         });
 
-        document.getElementById('rareMaterialsList').innerHTML = rareHtml || "<li class="text-slate-400 italic">Aucun pour ce planning</li>";
+        // LA LIGNE CORRIGÉE : Utilisation de guillemets simples à l'intérieur
+        document.getElementById('rareMaterialsList').innerHTML = rareHtml || "<li class='text-slate-400 italic'>Aucun pour ce planning</li>";
         document.getElementById('commonMaterialsList').innerHTML = commonHtml;
         document.getElementById('shoppingListContainer').classList.remove('hidden');
     }
