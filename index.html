@@ -127,28 +127,28 @@
     </div>
 
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-indigo-500">
-        <h2 class="text-2xl font-bold text-slate-800 mb-2">Simulateur de Planning (24h)</h2>
+        <h2 class="text-2xl font-bold text-slate-800 mb-2">Simulateur de Planning Optimo (24h)</h2>
         <ul class="text-slate-600 mb-4 text-sm list-disc list-inside space-y-1">
-            <li>Sélectionnez des objets en cochant les cases.</li>
-            <li><span class="font-semibold text-emerald-600">Objets Uniques :</span> Chaque objet sélectionné ne peut apparaître qu'une seule fois dans un même planning.</li>
-            <li><span class="font-semibold text-indigo-600">Règle de fin de journée :</span> Le temps restant (s'il y en a) doit être un multiple de 4, 6 ou 8.</li>
-            <li><span class="font-semibold">Bonus Combo :</span> Gain x2 si l'objet suivant partage une catégorie.</li>
+            <li><span class="font-semibold text-emerald-600">Combinaisons Uniques :</span> Affiche uniquement le meilleur ordre (le plus rentable) pour un même groupe d'objets.</li>
+            <li><span class="font-semibold text-indigo-600">Efficacité (Gain/h) :</span> Permet de voir quels plannings rentabilisent le mieux le temps passé.</li>
+            <li>Le reste du temps journalier doit être utilisable (multiple de 4, 6 ou 8).</li>
         </ul>
 
         <button onclick="generateSchedules()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded shadow transition-colors">
-            Générer les enchaînements
+            Générer les enchaînements uniques
         </button>
 
         <div id="solverResults" class="hidden mt-6">
             <div class="flex justify-between items-end mb-2">
-                <h3 class="text-lg font-semibold text-slate-800"><span id="scheduleCount">0</span> planning(s) possible(s)</h3>
+                <h3 class="text-lg font-semibold text-slate-800"><span id="scheduleCount">0</span> combinaison(s) unique(s) possible(s)</h3>
             </div>
             <div class="table-container border border-slate-200 rounded-md">
                 <table class="w-full text-left border-collapse whitespace-nowrap">
                     <thead class="bg-indigo-50 sticky top-0 shadow-sm z-10">
                     <tr>
-                        <th class="p-3 border-b font-semibold text-slate-700">Enchaînement de la journée</th>
+                        <th class="p-3 border-b font-semibold text-slate-700">Enchaînement optimal de la journée</th>
                         <th class="p-3 border-b font-semibold cursor-pointer hover:bg-indigo-100 text-center w-24 text-slate-700" onclick="sortSchedules('time')">Temps ↕</th>
+                        <th class="p-3 border-b font-semibold cursor-pointer hover:bg-indigo-100 text-center w-32 text-slate-700" onclick="sortSchedules('eff')">Gain/h ↕</th>
                         <th class="p-3 border-b font-semibold cursor-pointer hover:bg-indigo-100 text-center w-32 text-slate-700" onclick="sortSchedules('gain')">Gain Total ↕</th>
                     </tr>
                     </thead>
@@ -349,10 +349,10 @@
     render(currentData);
 
     // ==========================================
-    // LOGIQUE DU SOLVER DE PLANNINGS
+    // LOGIQUE DU SOLVER DE PLANNINGS (OPTIMISÉ)
     // ==========================================
     let schedules = [];
-    let scheduleSortConfig = { key: 'gain', dir: -1 };
+    let scheduleSortConfig = { key: 'eff', dir: -1 }; // Tri par efficacité par défaut
 
     function generateSchedules() {
         const selectedItems = data.filter(d => selectedIds.has(d.id));
@@ -361,36 +361,40 @@
             return;
         }
 
-        schedules = [];
         const resultsDiv = document.getElementById('solverResults');
         const tbody = document.getElementById('scheduleBody');
 
         resultsDiv.classList.remove('hidden');
-        tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500 font-semibold">Calcul en cours... Veuillez patienter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-500 font-semibold">Calcul en cours... Veuillez patienter.</td></tr>';
 
         setTimeout(() => {
-            // On transmet un Set vide pour suivre les objets utilisés (pour interdire les doublons)
-            dfsSchedules([], 0, 0, selectedItems, new Set());
+            // Map pour stocker uniquement LE MEILLEUR ordre pour une même combinaison d'objets
+            // La clé sera la liste des IDs triés. Ex: "12-45-67"
+            let bestSchedulesBySet = new Map();
 
-            schedules.sort((a, b) => b.gain - a.gain);
+            dfsSchedules([], 0, 0, selectedItems, new Set(), bestSchedulesBySet);
+
+            // Transformation de la Map en tableau
+            schedules = Array.from(bestSchedulesBySet.values());
+
+            // Tri initial
+            schedules.sort((a, b) => b.eff - a.eff);
             renderSchedules();
         }, 50);
     }
 
-    function dfsSchedules(currentSeq, currentGain, currentTime, items, usedIds) {
+    function dfsSchedules(currentSeq, currentGain, currentTime, items, usedIds, bestSchedulesBySet) {
         let canAddMore = false;
 
         for (let i = 0; i < items.length; i++) {
             let item = items[i];
 
-            // RÈGLE : AUCUN DOUBLON dans la liste de production
             if (usedIds.has(item.id)) continue;
 
             if (currentTime + item.t <= 24) {
                 canAddMore = true;
                 let isCombo = false;
 
-                // Vérification du bonus de combo
                 if (currentSeq.length > 0) {
                     let lastItem = currentSeq[currentSeq.length - 1].item;
                     let cats1 = [lastItem.c1, lastItem.c2].filter(Boolean);
@@ -403,26 +407,29 @@
                 currentSeq.push({ item: item, combo: isCombo, stepGain: stepGain });
                 usedIds.add(item.id);
 
-                dfsSchedules(currentSeq, currentGain + stepGain, currentTime + item.t, items, usedIds);
+                dfsSchedules(currentSeq, currentGain + stepGain, currentTime + item.t, items, usedIds, bestSchedulesBySet);
 
-                usedIds.delete(item.id); // Backtracking
-                currentSeq.pop(); // Backtracking
+                usedIds.delete(item.id);
+                currentSeq.pop();
             }
         }
 
-        // Si on ne peut plus rien ajouter, on vérifie la règle de fin de journée
         if (!canAddMore && currentTime > 0) {
             const rem = 24 - currentTime;
 
-            // RÈGLE : Le reste doit être un multiple de 4, 6 ou 8.
-            // En mathématiques pures appliquées à FFXIV : 0, 4, 6, 8, 12, 16, 18, 20, 24 sont valides.
-            // Donc rem = 0, ou modulo de 4 = 0, ou modulo de 6 = 0, ou modulo de 8 = 0.
             if (rem === 0 || rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0) {
-                schedules.push({
-                    path: currentSeq.map(s => ({ item: s.item, combo: s.combo, stepGain: s.stepGain })),
-                    gain: currentGain,
-                    time: currentTime
-                });
+                // Création d'une signature unique pour cette combinaison d'objets (Indépendamment de l'ordre)
+                const signature = Array.from(usedIds).sort((a, b) => a - b).join('-');
+
+                // Si on n'a jamais vu cette combinaison d'objets OU si cet ordre précis donne un meilleur gain
+                if (!bestSchedulesBySet.has(signature) || bestSchedulesBySet.get(signature).gain < currentGain) {
+                    bestSchedulesBySet.set(signature, {
+                        path: currentSeq.map(s => ({ item: s.item, combo: s.combo, stepGain: s.stepGain })),
+                        gain: currentGain,
+                        time: currentTime,
+                        eff: currentGain / currentTime // Efficacité : Gain par heure
+                    });
+                }
             }
         }
     }
@@ -438,6 +445,7 @@
         schedules.sort((a, b) => {
             if (key === 'gain') return (a.gain - b.gain) * scheduleSortConfig.dir;
             if (key === 'time') return (a.time - b.time) * scheduleSortConfig.dir;
+            if (key === 'eff') return (a.eff - b.eff) * scheduleSortConfig.dir;
             return 0;
         });
         renderSchedules();
@@ -448,7 +456,7 @@
         const tbody = document.getElementById('scheduleBody');
 
         if (schedules.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500">Aucun enchaînement valide trouvé. Essayez de sélectionner d\'autres objets.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-500">Aucun enchaînement valide trouvé.</td></tr>';
             return;
         }
 
@@ -477,13 +485,14 @@
                     <tr class="hover:bg-indigo-50/50 transition-colors border-b">
                         <td class="p-3 flex flex-wrap items-center">${htmlPath}</td>
                         <td class="p-3 text-center font-mono text-indigo-800 font-bold">${s.time}h</td>
+                        <td class="p-3 text-center font-bold text-blue-600">${s.eff.toFixed(2)}</td>
                         <td class="p-3 text-center font-bold text-emerald-600 text-lg">${s.gain}</td>
                     </tr>
                 `;
         }).join('');
 
         if (schedules.length > maxDisplay) {
-            tbody.innerHTML += `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic bg-slate-50">Affichage limité aux ${maxDisplay} meilleurs résultats (sur ${schedules.length} calculés).</td></tr>`;
+            tbody.innerHTML += `<tr><td colspan="4" class="p-4 text-center text-slate-500 italic bg-slate-50">Affichage limité aux ${maxDisplay} meilleurs résultats (sur ${schedules.length} calculés).</td></tr>`;
         }
     }
 </script>
