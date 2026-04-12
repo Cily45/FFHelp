@@ -128,11 +128,12 @@
 
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-indigo-500">
         <h2 class="text-2xl font-bold text-slate-800 mb-2">Simulateur de Planning (24h)</h2>
-        <p class="text-slate-600 mb-4 text-sm">
-            Sélectionnez des objets dans le tableau ci-dessus (en cochant les cases), puis générez toutes les combinaisons possibles.<br>
-            <span class="font-semibold">Le bonus Combo (Gain x2) s'applique automatiquement si 2 objets consécutifs partagent une catégorie et sont différents.</span><br>
-            <span class="text-orange-600 font-semibold">⚠️ Limitez votre sélection à environ 10-12 objets maximum pour ne pas figer le navigateur avec un calcul trop lourd.</span>
-        </p>
+        <ul class="text-slate-600 mb-4 text-sm list-disc list-inside space-y-1">
+            <li>Sélectionnez des objets en cochant les cases.</li>
+            <li><span class="font-semibold text-emerald-600">Objets Uniques :</span> Chaque objet sélectionné ne peut apparaître qu'une seule fois dans un même planning.</li>
+            <li><span class="font-semibold text-indigo-600">Règle de fin de journée :</span> Le temps restant (s'il y en a) doit être un multiple de 4, 6 ou 8.</li>
+            <li><span class="font-semibold">Bonus Combo :</span> Gain x2 si l'objet suivant partage une catégorie.</li>
+        </ul>
 
         <button onclick="generateSchedules()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded shadow transition-colors">
             Générer les enchaînements
@@ -160,7 +161,7 @@
 </div>
 
 <script>
-    // Données complètes (Identiques, avec temps et catégories)
+    // Données complètes
     const rawData = [
         { n: 88, obj: "Anneau en quartz exotique", t: 6, val: 72, c1: "Accessoire", c2: "En céramique", exp: "Non", ing: "3 x Quartz insulaire | 3 x Minerai de fer insulaire | 2 x Pierre insulaire" },
         { n: 16, obj: "Bague en corail manufacturée", t: 6, val: 42, c1: "Accessoire", c2: "Marin", exp: "Non", ing: "3 x Corail insulaire | 3 x Sarment insulaire" },
@@ -332,7 +333,7 @@
             return true;
         });
         if (sortConfig.key) {
-            sortConfig.direction *= -1; // Compensate for toggle
+            sortConfig.direction *= -1;
             sortTable(sortConfig.key);
         } else render(currentData);
     }
@@ -348,7 +349,7 @@
     render(currentData);
 
     // ==========================================
-    // LOGIQUE DU SOLVER DE PLANNINGS (NOUVEAU)
+    // LOGIQUE DU SOLVER DE PLANNINGS
     // ==========================================
     let schedules = [];
     let scheduleSortConfig = { key: 'gain', dir: -1 };
@@ -359,11 +360,6 @@
             alert("Veuillez sélectionner au moins un objet dans le tableau en cochant sa case.");
             return;
         }
-        if (selectedItems.length > 12) {
-            if(!confirm("⚠️ Vous avez sélectionné plus de 12 objets. Le calcul de toutes les combinaisons peut être très long et figer la page. Voulez-vous continuer ?")) {
-                return;
-            }
-        }
 
         schedules = [];
         const resultsDiv = document.getElementById('solverResults');
@@ -372,57 +368,62 @@
         resultsDiv.classList.remove('hidden');
         tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500 font-semibold">Calcul en cours... Veuillez patienter.</td></tr>';
 
-        // Utilisation de setTimeout pour laisser l'interface afficher "Calcul en cours..."
         setTimeout(() => {
-            dfsSchedules([], 0, 0, selectedItems);
+            // On transmet un Set vide pour suivre les objets utilisés (pour interdire les doublons)
+            dfsSchedules([], 0, 0, selectedItems, new Set());
 
-            // Tri par défaut (Gain décroissant)
             schedules.sort((a, b) => b.gain - a.gain);
             renderSchedules();
         }, 50);
     }
 
-    // Parcours en profondeur (Backtracking) pour trouver toutes les compos de 24h
-    function dfsSchedules(currentSeq, currentGain, currentTime, items) {
+    function dfsSchedules(currentSeq, currentGain, currentTime, items, usedIds) {
         let canAddMore = false;
 
         for (let i = 0; i < items.length; i++) {
             let item = items[i];
 
+            // RÈGLE : AUCUN DOUBLON dans la liste de production
+            if (usedIds.has(item.id)) continue;
+
             if (currentTime + item.t <= 24) {
                 canAddMore = true;
                 let isCombo = false;
 
-                // Vérification du combo avec l'objet précédent
+                // Vérification du bonus de combo
                 if (currentSeq.length > 0) {
                     let lastItem = currentSeq[currentSeq.length - 1].item;
-                    // Ne peut pas faire de combo avec EXACTEMENT le même objet consécutivement
-                    if (lastItem.id !== item.id) {
-                        let cats1 = [lastItem.c1, lastItem.c2].filter(Boolean);
-                        let cats2 = [item.c1, item.c2].filter(Boolean);
-                        isCombo = cats1.some(c => cats2.includes(c)); // Partagent au moins 1 catégorie
-                    }
+                    let cats1 = [lastItem.c1, lastItem.c2].filter(Boolean);
+                    let cats2 = [item.c1, item.c2].filter(Boolean);
+                    isCombo = cats1.some(c => cats2.includes(c));
                 }
 
-                // Si combo, le gain est doublé pour cet objet
                 let stepGain = isCombo ? item.val * 2 : item.val;
 
                 currentSeq.push({ item: item, combo: isCombo, stepGain: stepGain });
-                dfsSchedules(currentSeq, currentGain + stepGain, currentTime + item.t, items);
-                currentSeq.pop();
+                usedIds.add(item.id);
+
+                dfsSchedules(currentSeq, currentGain + stepGain, currentTime + item.t, items, usedIds);
+
+                usedIds.delete(item.id); // Backtracking
+                currentSeq.pop(); // Backtracking
             }
         }
 
-        // Si on ne peut plus rien rajouter et qu'on a bien rempli la journée (on garde tout ce qui est >= 16h pour être sûr)
+        // Si on ne peut plus rien ajouter, on vérifie la règle de fin de journée
         if (!canAddMore && currentTime > 0) {
-            // Pour être strict sur la demande "soit de 24h", on peut forcer (currentTime === 24)
-            // Mais pour ne pas bloquer si le joueur prend que du 6 et du 8, on accepte la fin de branche
-            // Ici, j'accepte tout planning où on ne peut plus rien ajouter.
-            schedules.push({
-                path: currentSeq.map(s => ({ item: s.item, combo: s.combo, stepGain: s.stepGain })),
-                gain: currentGain,
-                time: currentTime
-            });
+            const rem = 24 - currentTime;
+
+            // RÈGLE : Le reste doit être un multiple de 4, 6 ou 8.
+            // En mathématiques pures appliquées à FFXIV : 0, 4, 6, 8, 12, 16, 18, 20, 24 sont valides.
+            // Donc rem = 0, ou modulo de 4 = 0, ou modulo de 6 = 0, ou modulo de 8 = 0.
+            if (rem === 0 || rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0) {
+                schedules.push({
+                    path: currentSeq.map(s => ({ item: s.item, combo: s.combo, stepGain: s.stepGain })),
+                    gain: currentGain,
+                    time: currentTime
+                });
+            }
         }
     }
 
@@ -447,11 +448,10 @@
         const tbody = document.getElementById('scheduleBody');
 
         if (schedules.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500">Aucun enchaînement valide trouvé avec cette sélection.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500">Aucun enchaînement valide trouvé. Essayez de sélectionner d\'autres objets.</td></tr>';
             return;
         }
 
-        // Limite d'affichage pour ne pas faire laguer le navigateur HTML
         const maxDisplay = 300;
         const displaySchedules = schedules.slice(0, maxDisplay);
 
