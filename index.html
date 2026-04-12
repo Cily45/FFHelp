@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fabrique de l'Île - Simulateur Hebdomadaire Expert V4</title>
+    <title>Fabrique de l'Île - Simulateur Hebdomadaire Expert V5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .table-container { max-height: 55vh; overflow-y: auto; }
@@ -25,8 +25,8 @@
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-slate-700">
         <header class="mb-6 border-b pb-4 flex flex-col md:flex-row justify-between md:items-end gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v4.0</span></h1>
-                <p class="text-slate-500">Moteur Économique Pur (Règle des 8 & Faisceau)</p>
+                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v5.0</span></h1>
+                <p class="text-slate-500">Moteur Économique Pur (Règle des 8 & Faisceau Rapide)</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
 
@@ -130,8 +130,8 @@
             <div class="mb-4 md:mb-0">
                 <h2 class="text-2xl font-bold text-slate-800 mb-2">Solveur Global (Moteur de Marché FFXIV)</h2>
                 <ul class="text-slate-600 text-sm list-disc list-inside space-y-1 max-w-3xl">
-                    <li><span class="font-semibold text-emerald-600">Loi des 8 :</span> L'algorithme traque chaque objet produit. La demande ne chute (-1 cran) que lorsque le palier de 8 objets expédiés est franchi.</li>
-                    <li><span class="font-semibold text-orange-600">Combo & Expédition simultanée :</span> Contourne intelligemment les pénalités du marché en produisant sur 3 fabriques en même temps (6 unités = 0 pénalité immédiate).</li>
+                    <li><span class="font-semibold text-emerald-600">Loi des 8 :</span> La demande ne chute (-1 cran) que lorsque le palier de 8 objets expédiés est franchi de manière cumulée.</li>
+                    <li><span class="font-semibold text-orange-600">Optimisation des Combos :</span> Simule instantanément des milliers de parcours croisés avec l'évolution de la Tension (Groove).</li>
                 </ul>
 
                 <div class="mt-4 inline-block bg-orange-50 border border-orange-200 rounded p-2">
@@ -278,7 +278,9 @@
             try {
                 const parsed = JSON.parse(saved);
                 if(parsed.market) {
-                    for(let id in parsed.market) marketData[id] = parsed.market[id];
+                    for(let id in parsed.market) {
+                        marketData[id] = parsed.market[id];
+                    }
                 }
             } catch(e) { console.error("Erreur lecture", e); }
         }
@@ -294,6 +296,8 @@
 
     async function initMarketData() {
         loadFromLocalStorage();
+        // On s'assure d'afficher la liste par défaut immédiatement même si l'API échoue
+        applyFilters();
 
         try {
             const response = await fetch('market_data.json', { cache: 'no-store' });
@@ -341,6 +345,7 @@
             console.log("Mode Local", error);
             document.getElementById('lastUpdateText').textContent = "Mode Local (Aucun fichier)";
         }
+        // On met à jour l'affichage avec les données éventuelles du marché
         applyFilters();
     }
 
@@ -413,8 +418,10 @@
 
     function applyFilters() {
         const userRank = parseInt(document.getElementById('userRank').value) || 20;
-        const [sObj, sIng, minV, maxV, exp, catA, catB, timeFilter] = inputs.map(i => i.value.toLowerCase());
-        const op = document.querySelector('input[name="catOp"]:checked').value;
+        const [sObj, sIng, minV, maxV, exp, catA, catB, timeFilter] = inputs.map(i => i?.value.toLowerCase() || "");
+
+        const catOpEl = document.querySelector('input[name="catOp"]:checked');
+        const op = catOpEl ? catOpEl.value : "AND";
 
         currentData = data.filter(d => {
             if (d.lvl > userRank) return false;
@@ -435,32 +442,40 @@
             }
             return true;
         });
-        if (sortConfig.key) { sortConfig.direction *= -1; sortTable(sortConfig.key); } else render(currentData);
+
+        if (sortConfig.key) {
+            sortConfig.direction *= -1;
+            sortTable(sortConfig.key);
+        } else {
+            render(currentData);
+        }
     }
 
     function resetFilters() {
-        inputs.forEach(input => input.value = '');
-        radios[0].checked = true;
+        inputs.forEach(input => { if(input) input.value = ''; });
+        if(radios[0]) radios[0].checked = true;
         applyFilters();
     }
 
-    inputs.forEach(input => { input.addEventListener('input', applyFilters); input.addEventListener('change', applyFilters); });
+    inputs.forEach(input => { if(input) { input.addEventListener('input', applyFilters); input.addEventListener('change', applyFilters); } });
     radios.forEach(radio => radio.addEventListener('change', applyFilters));
 
+    // LANCEMENT SYSTEMATIQUE AU DEMARRAGE
+    initMarketData();
+
     // ==========================================
-    // V4: LOI DES 8 & BEAM SEARCH
+    // V5: SUPER BEAM SEARCH OPTIMISÉ (ANTI-CRASH)
     // ==========================================
 
-    // Calcule la valeur d'un objet en fonction de la popularité, et de la demande EFFECTIVE (calculée)
     function getRealValWithFormula(item, effectiveDemLevel) {
         let m = marketData[item.id];
         let popMult = POP_MULT[m.pop];
-        // Sécurité pour éviter de chercher un index négatif dans le tableau
         let demMult = DEM_MULT[Math.max(0, effectiveDemLevel)];
         return Math.floor(item.val * popMult * demMult);
     }
 
-    const BEAM_WIDTH = 25;
+    const WEEK_BEAM_WIDTH = 25;
+    const DAY_BEAM_WIDTH = 50;
 
     function generateWeeklyGlobal() {
         saveSettings();
@@ -476,12 +491,14 @@
 
         document.getElementById('solverResults').classList.remove('hidden');
         const grid = document.getElementById('weeklyGrid');
-        grid.innerHTML = '<div class="text-center p-12"><div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div><div class="text-indigo-800 font-bold text-xl">Simulation des marchés en cours...</div><div class="text-sm text-indigo-500 mt-2">Suivi de la règle de l\'expédition par paliers de 8</div></div>';
+        grid.innerHTML = '<div class="text-center p-12"><div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div><div class="text-indigo-800 font-bold text-xl">Simulation par faisceau en cours...</div><div class="text-sm text-indigo-500 mt-2">Génération des plannings (sans plantage du navigateur)</div></div>';
 
+        // Timeout pour laisser l'UI s'afficher avant de bloquer le thread principal
         setTimeout(() => {
             let initialDemands = {};
             data.forEach(d => initialDemands[d.id] = marketData[d.id].dem);
 
+            // Matrice d'adjacence pour booster la vitesse
             const adjacency = {};
             activeItems.forEach(item1 => {
                 adjacency[item1.id] = activeItems.filter(item2 => {
@@ -492,109 +509,162 @@
                 });
             });
 
-            let allPossibleDailySchedules = generateAllDailyPaths(activeItems, adjacency);
-
+            // L'état initial du Faisceau Hebdomadaire
             let beam = [{
                 history: [],
-                producedCount: {}, // Compteur exact d'objets fabriqués au lieu d'une chute globale
+                producedCount: {},
                 groove: 0,
                 totalGain: 0
             }];
 
+            const weekDays = ['Jour 1 (Mercredi)', 'Jour 2 (Jeudi)', 'Jour 3 (Vendredi)', 'Jour 4 (Samedi)', 'Jour 5 (Dimanche)'];
+
             for (let day = 0; day < 5; day++) {
                 let newBeam = [];
 
+                // Pour chaque réalité (état) du faisceau hebdomadaire
                 for (let state of beam) {
-                    for (let pathDef of allPossibleDailySchedules) {
 
-                        let tempProduced = {...state.producedCount};
-                        let currentGroove = state.groove;
-                        let dailyGain = 0;
-                        let richPath = [];
+                    // --- RECHERCHE EN FAISCEAU JOURNALIÈRE ---
+                    // Permet d'éviter l'explosion combinatoire (DFS) et le plantage de la RAM
+                    let dayBeam = [{ seq: [], time: 0, gain: 0, groove: state.groove }];
+                    let completedPaths = [];
 
-                        for (let i = 0; i < pathDef.length; i++) {
-                            let item = pathDef[i];
-                            let isCombo = (i > 0);
+                    for (let step = 0; step < 6; step++) { // Maximum 6 objets de 4h dans une journée
+                        let nextDayBeam = [];
 
-                            // CALCUL DE LA DEMANDE EFFECTIVE: -1 cran tous les 8 objets produits
-                            let currentItemsProduced = tempProduced[item.id] || 0;
-                            let demandDrops = Math.floor(currentItemsProduced / 8);
-                            let currentDemLevel = Math.max(0, initialDemands[item.id] - demandDrops);
+                        for (let partial of dayBeam) {
+                            let possibleItems = partial.seq.length === 0 ? activeItems : adjacency[partial.seq[partial.seq.length - 1].id];
 
-                            // PRIX
-                            let baseVal = getRealValWithFormula(item, currentDemLevel);
-                            let valWithCombo = isCombo ? baseVal * 2 : baseVal;
-                            let stepGain = Math.floor(valWithCombo * (1 + currentGroove / 100));
+                            let canAddMore = false;
+                            for (let item of possibleItems) {
+                                if (partial.time + item.t <= 24) {
+                                    canAddMore = true;
+                                    let isCombo = partial.seq.length > 0;
 
-                            // ON SIMULE 3 FABRIQUES
-                            let realStepGain = stepGain * 3;
-                            dailyGain += realStepGain;
+                                    // RÈGLE DES 8: Calcul de la demande à l'instant T
+                                    let currentItemsProduced = state.producedCount[item.id] || 0;
+                                    let demandDrops = Math.floor(currentItemsProduced / 8);
+                                    let effDem = Math.max(0, initialDemands[item.id] - demandDrops);
 
-                            richPath.push({ item: item, combo: isCombo, stepGain: stepGain, currentGroove: currentGroove, effDem: currentDemLevel });
+                                    let baseVal = getRealValWithFormula(item, effDem);
+                                    let valWithCombo = isCombo ? baseVal * 2 : baseVal;
+                                    // Application de la tension (Groove) et multiplication par les 3 fabriques
+                                    let stepGain = Math.floor(valWithCombo * (1 + partial.groove / 100)) * 3;
 
-                            // MISE A JOUR DES COMPTEURS (Apres l'export)
-                            // Une fabrique produit 1 unité (ou 2 si combo). Multiplié par 3 fabriques.
-                            let addedUnits = (isCombo ? 2 : 1) * 3;
-                            tempProduced[item.id] = currentItemsProduced + addedUnits;
+                                    let newGroove = isCombo ? Math.min(maxGroove, partial.groove + 3) : partial.groove;
 
-                            if (isCombo) {
-                                currentGroove = Math.min(maxGroove, currentGroove + 3);
+                                    nextDayBeam.push({
+                                        seq: [...partial.seq, item],
+                                        time: partial.time + item.t,
+                                        gain: partial.gain + stepGain,
+                                        groove: newGroove
+                                    });
+                                }
+                            }
+
+                            // Si on ne peut plus rien ajouter, on sauvegarde le planning s'il remplit bien la journée
+                            if (!canAddMore && partial.time > 0) {
+                                const rem = 24 - partial.time;
+                                if (rem === 0 || rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0) {
+                                    completedPaths.push(partial);
+                                }
                             }
                         }
 
+                        // On élague l'arbre journalier en ne gardant que les meilleurs ratios (Gain / Temps)
+                        nextDayBeam.sort((a, b) => (b.gain / b.time) - (a.gain / a.time));
+                        dayBeam = nextDayBeam.slice(0, DAY_BEAM_WIDTH);
+                    }
+
+                    // Ajout des plannings de 24h parfaits du dernier step
+                    dayBeam.forEach(p => {
+                        const rem = 24 - p.time;
+                        if (p.time > 0 && (rem === 0 || rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0)) {
+                            completedPaths.push(p);
+                        }
+                    });
+
+                    // Sélection des 15 plannings journaliers les plus rentables
+                    completedPaths.sort((a, b) => b.gain - a.gain);
+                    let uniqueDailyPaths = [];
+                    let sigs = new Set();
+                    for (let p of completedPaths) {
+                        let sig = p.seq.map(i => i.id).join('-');
+                        if (!sigs.has(sig)) {
+                            sigs.add(sig);
+                            uniqueDailyPaths.push(p);
+                            if (uniqueDailyPaths.length >= 15) break;
+                        }
+                    }
+
+                    // --- FIN DE LA RECHERCHE JOURNALIÈRE ---
+
+                    // Pour chaque bon planning trouvé, on crée une nouvelle "réalité" pour le jour suivant
+                    for (let daily of uniqueDailyPaths) {
+                        let tempProduced = {...state.producedCount};
+                        let richPath = [];
+                        let currentGroove = state.groove;
+
+                        for (let i = 0; i < daily.seq.length; i++) {
+                            let item = daily.seq[i];
+                            let isCombo = i > 0;
+
+                            let currentItemsProduced = state.producedCount[item.id] || 0;
+                            let demandDrops = Math.floor(currentItemsProduced / 8);
+                            let effDem = Math.max(0, initialDemands[item.id] - demandDrops);
+
+                            // Prix SANS les x3 pour l'affichage unitaire
+                            let baseVal = getRealValWithFormula(item, effDem);
+                            let valWithCombo = isCombo ? baseVal * 2 : baseVal;
+                            let stepGainSingle = Math.floor(valWithCombo * (1 + currentGroove / 100));
+
+                            richPath.push({
+                                item: item,
+                                combo: isCombo,
+                                stepGainSingle: stepGainSingle, // Gain pour 1 fabrique
+                                currentGroove: currentGroove,
+                                effDem: effDem
+                            });
+
+                            if (isCombo) currentGroove = Math.min(maxGroove, currentGroove + 3);
+
+                            // RÈGLE DES 8: On ajoute les objets produits à la fin pour pénaliser le lendemain
+                            // (1 craft normal = 1 unité. 1 craft combo = 2 unités). Le tout sur 3 fabriques.
+                            let addedUnits = (isCombo ? 2 : 1) * 3;
+                            tempProduced[item.id] = (tempProduced[item.id] || 0) + addedUnits;
+                        }
+
                         newBeam.push({
-                            history: [...state.history, { path: richPath, gain: dailyGain, endGroove: currentGroove }],
+                            history: [...state.history, { path: richPath, totalGainx3: daily.gain, endGroove: daily.groove, time: daily.time }],
                             producedCount: tempProduced,
-                            groove: currentGroove,
-                            totalGain: state.totalGain + dailyGain
+                            groove: daily.groove,
+                            totalGain: state.totalGain + daily.gain
                         });
                     }
                 }
 
+                // On élague l'arbre de la semaine
                 newBeam.sort((a, b) => b.totalGain - a.totalGain);
-                beam = newBeam.slice(0, BEAM_WIDTH);
+                beam = newBeam.slice(0, WEEK_BEAM_WIDTH);
+            }
+
+            if(beam.length === 0) {
+                grid.innerHTML = '<div class="text-center text-red-500 font-bold p-8">Impossible de générer un planning. Réduisez vos filtres.</div>';
+                return;
             }
 
             let bestWeek = beam[0];
-
-            const weekDays = ['Jour 1 (Mercredi)', 'Jour 2 (Jeudi)', 'Jour 3 (Vendredi)', 'Jour 4 (Samedi)', 'Jour 5 (Dimanche)'];
             let finalPlan = bestWeek.history.map((dayData, index) => {
                 return { dayName: weekDays[index], schedule: dayData };
             });
 
-            renderWeeklyV4(finalPlan, bestWeek.totalGain);
+            renderWeeklyV5(finalPlan, bestWeek.totalGain);
         }, 50);
     }
 
-    function generateAllDailyPaths(activeItems, adjacency) {
-        let validPaths = [];
-        function dfs(currentSeq, currentTime) {
-            let canAddMore = false;
-            let possibleItems = currentSeq.length === 0 ? activeItems : adjacency[currentSeq[currentSeq.length - 1].id];
-
-            for (let i = 0; i < possibleItems.length; i++) {
-                let item = possibleItems[i];
-                if (currentTime + item.t <= 24) {
-                    canAddMore = true;
-                    currentSeq.push(item);
-                    dfs(currentSeq, currentTime + item.t);
-                    currentSeq.pop();
-                }
-            }
-
-            if (!canAddMore && currentTime > 0) {
-                const rem = 24 - currentTime;
-                if (rem === 0 || rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0) {
-                    validPaths.push([...currentSeq]);
-                }
-            }
-        }
-        dfs([], 0);
-        return validPaths;
-    }
-
-    function renderWeeklyV4(weeklyPlan, totalGain) {
-        document.getElementById('weekTotalGain').innerHTML = totalGain + ' <span class="text-2xl text-indigo-300">Assignats</span>';
+    function renderWeeklyV5(weeklyPlan, totalGain) {
+        document.getElementById('weekTotalGain').innerHTML = totalGain.toLocaleString() + ' <span class="text-2xl text-indigo-300">Assignats</span>';
         const grid = document.getElementById('weeklyGrid');
 
         grid.innerHTML = weeklyPlan.map(day => {
@@ -604,10 +674,9 @@
                 let arrow = i < s.path.length - 1 ? `<span class="mx-1 text-slate-400 font-bold text-xs">➔</span>` : '';
                 let grooveTag = `<span class="text-[9px] font-black text-indigo-500 ml-1" title="Tension à l'heure du craft">T:${step.currentGroove}</span>`;
 
-                // Petite astuce visuelle si la demande a chuté pendant la semaine pour cet objet
                 let dropWarning = '';
                 if(step.effDem < marketData[step.item.id].dem) {
-                    dropWarning = `<span class="text-[9px] text-red-500 font-black ml-1" title="La demande a chuté suite à vos productions précédentes">📉</span>`;
+                    dropWarning = `<span class="text-[9px] text-red-500 font-black ml-1" title="Alerte Règle des 8: La demande a chuté car vous avez expédié plus de 8 exemplaires de cet objet dans la semaine.">📉</span>`;
                 }
 
                 return `<div class="inline-flex items-center mt-1">
@@ -624,8 +693,9 @@
                             <div class="flex flex-wrap items-center">${htmlPath}</div>
                         </div>
                         <div class="flex items-center mt-3 md:mt-0 space-x-4 border-t md:border-t-0 md:border-l border-slate-200 pt-2 md:pt-0 md:pl-4">
-                            <div class="text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Fin Jour</div><div class="font-bold text-indigo-600">Tension ${s.endGroove}</div></div>
-                            <div class="text-center"><div class="text-[10px] text-emerald-600 uppercase font-bold">Revenu (x3)</div><div class="font-black text-emerald-600 text-lg">${s.gain}</div></div>
+                            <div class="text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Durée</div><div class="font-mono font-bold text-indigo-900">${s.time}h</div></div>
+                            <div class="text-center"><div class="text-[10px] text-slate-400 uppercase font-bold" title="Revenu d'une seule fabrique par heure">Gain/h (x1)</div><div class="font-bold text-blue-600">${(s.totalGainx3 / 3 / s.time).toFixed(1)}</div></div>
+                            <div class="text-center"><div class="text-[10px] text-emerald-600 uppercase font-bold">Revenu (x3)</div><div class="font-black text-emerald-600 text-lg">${s.totalGainx3}</div></div>
                         </div>
                     </div>
                 `;
@@ -634,7 +704,7 @@
                     <div class="bg-white rounded-lg border border-slate-300 p-4 shadow-sm hover:shadow-md transition-shadow">
                         <div class="flex justify-between items-end border-b pb-2 mb-2">
                             <h3 class="font-bold text-xl text-slate-800">${day.dayName}</h3>
-                            <span class="font-black text-emerald-600">+ ${s.gain}</span>
+                            <span class="font-black text-emerald-600">+ ${s.totalGainx3}</span>
                         </div>
                         <div class="space-y-1">
                             ${dayHtml}
