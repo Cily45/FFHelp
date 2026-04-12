@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atelier de l'Île - Base de données & Simulateur</title>
+    <title>Fabrique de l'Île - Base de données & Simulateur</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .table-container { max-height: 55vh; overflow-y: auto; }
@@ -12,16 +12,20 @@
         .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .custom-checkbox { width: 1.25rem; height: 1.25rem; cursor: pointer; accent-color: #4f46e5; }
+
+        /* Checkboxes personnalisées */
+        .custom-checkbox { width: 1.25rem; height: 1.25rem; cursor: pointer; }
+        .cb-prio { accent-color: #f59e0b; } /* Ambre pour Priorité */
+        .cb-sec { accent-color: #3b82f6; } /* Bleu pour Secondaire */
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-8">
 <div class="max-w-7xl mx-auto space-y-6">
 
-    <div class="bg-white shadow-xl rounded-lg p-6">
+    <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-slate-700">
         <header class="mb-6 border-b pb-4 flex justify-between items-end">
             <div>
-                <h1 class="text-3xl font-bold text-slate-800">Atelier de l'Île</h1>
+                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île</h1>
                 <p class="text-slate-500">Outil de filtrage avancé & Temps de production</p>
             </div>
             <div class="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
@@ -92,10 +96,12 @@
                         </div>
                         <div class="flex items-center">
                             <label class="mr-2 font-semibold text-slate-700">Sélection :</label>
-                            <select id="filterSel" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500">
+                            <select id="filterSel" class="border rounded px-3 py-1.5 outline-none focus:border-amber-500 bg-white">
                                 <option value="all">Tous</option>
-                                <option value="checked">Sélectionnés (✓)</option>
-                                <option value="unchecked">Non sélectionnés</option>
+                                <option value="prio">Priorités (★)</option>
+                                <option value="sec">Secondaires (+)</option>
+                                <option value="checked">Tous cochés</option>
+                                <option value="unchecked">Non cochés</option>
                             </select>
                         </div>
                     </div>
@@ -111,8 +117,9 @@
             <table class="w-full text-left border-collapse whitespace-nowrap">
                 <thead class="bg-slate-200 sticky top-0 shadow-sm z-10">
                 <tr>
-                    <th class="p-3 border-b text-center font-semibold w-10">✓</th>
-                    <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('n')">Niveau ↕</th>
+                    <th class="p-3 border-b text-center font-bold text-amber-600 w-10" title="Éléments à utiliser en priorité">★<br><span class="text-[10px] font-normal text-slate-600">Prio</span></th>
+                    <th class="p-3 border-b text-center font-bold text-blue-600 w-10 border-r border-slate-300" title="Éléments pour compléter le planning">+<br><span class="text-[10px] font-normal text-slate-600">Sec</span></th>
+                    <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300 pl-4" onclick="sortTable('n')">Niveau ↕</th>
                     <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('obj')">Objet ↕</th>
                     <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('t')">Temps ↕</th>
                     <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('val')">Valeur ↕</th>
@@ -126,24 +133,24 @@
         </div>
     </div>
 
-    <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-indigo-500">
+    <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-amber-500">
         <h2 class="text-2xl font-bold text-slate-800 mb-2">Simulateur de Plannings Parfaits (24h)</h2>
         <ul class="text-slate-600 mb-4 text-sm list-disc list-inside space-y-1">
-            <li><span class="font-semibold text-emerald-600">Chaîne de Combo stricte :</span> L'algorithme ne garde que les plannings où <span class="underline">chaque</span> objet (après le 1er) déclenche le bonus x2.</li>
-            <li><span class="font-semibold text-indigo-600">Combinaisons Uniques :</span> Affiche uniquement le meilleur ordre (le plus rentable) pour un même groupe d'objets.</li>
+            <li><span class="font-semibold text-amber-600">Priorité (★) vs Secondaire (+) :</span> L'algorithme cherchera à construire des journées complètes en utilisant le maximum d'objets prioritaires, et se servira des secondaires pour boucher les trous.</li>
+            <li><span class="font-semibold text-emerald-600">Chaîne de Combo stricte :</span> Chaque objet (après le 1er) DOIT déclencher le bonus x2.</li>
             <li>Le reste du temps journalier doit être utilisable (multiple de 4, 6 ou 8).</li>
         </ul>
 
-        <button onclick="generateSchedules()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+        <button onclick="generateSchedules()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-6 rounded shadow transition-colors">
             Générer les Plannings Parfaits
         </button>
 
         <div id="solverResults" class="hidden mt-6 space-y-8">
 
-            <div id="topSchedulesContainer" class="hidden bg-indigo-50/50 p-5 rounded-lg border border-indigo-100 shadow-sm">
-                <h3 class="text-xl font-bold text-indigo-900 mb-4 flex items-center">
-                    <span class="text-2xl mr-2">🏆</span> Les 3 Meilleurs Plannings Indépendants
-                    <span class="text-sm font-normal text-indigo-600 ml-3">(Aucun objet en commun)</span>
+            <div id="topSchedulesContainer" class="hidden bg-amber-50/30 p-5 rounded-lg border border-amber-200 shadow-sm">
+                <h3 class="text-xl font-bold text-amber-900 mb-4 flex items-center">
+                    <span class="text-2xl mr-2">🏆</span> Les 3 Meilleures Fabriques Indépendantes
+                    <span class="text-sm font-normal text-amber-600 ml-3">(Aucun objet en commun)</span>
                 </h3>
                 <div id="topSchedulesGrid" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 </div>
@@ -158,9 +165,10 @@
                         <thead class="bg-slate-100 sticky top-0 shadow-sm z-10">
                         <tr>
                             <th class="p-3 border-b font-semibold text-slate-700">Détail du Planning Parfait</th>
-                            <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-24 text-slate-700" onclick="sortSchedules('time')">Temps ↕</th>
-                            <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-32 text-slate-700" onclick="sortSchedules('eff')">Gain/h ↕</th>
-                            <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-32 text-slate-700" onclick="sortSchedules('gain')">Gain Total ↕</th>
+                            <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-20 text-slate-700" onclick="sortSchedules('prio')" title="Nombre d'objets prioritaires utilisés">★ Prio ↕</th>
+                            <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-20 text-slate-700" onclick="sortSchedules('time')">Temps ↕</th>
+                            <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-28 text-slate-700" onclick="sortSchedules('eff')">Gain/h ↕</th>
+                            <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-28 text-slate-700" onclick="sortSchedules('gain')">Gain Total ↕</th>
                         </tr>
                         </thead>
                         <tbody id="scheduleBody"></tbody>
@@ -262,7 +270,10 @@
     // LOGIQUE DE LA BASE DE DONNÉES
     const data = rawData.map((item, index) => ({ ...item, id: index }));
     let currentData = [...data];
-    const selectedIds = new Set();
+
+    // DEUX ensembles de sélection
+    const selectedPrioIds = new Set();
+    const selectedSecIds = new Set();
 
     const tableBody = document.getElementById('tableBody');
     const countSpan = document.getElementById('count');
@@ -280,20 +291,43 @@
     populateSelect(inputs[7]);
     populateSelect(inputs[8]);
 
-    window.toggleSelection = function(id) {
-        if (selectedIds.has(id)) selectedIds.delete(id);
-        else selectedIds.add(id);
+    // Fonctions de bascule exclusives (Prio / Sec)
+    window.togglePrio = function(id) {
+        if (selectedPrioIds.has(id)) {
+            selectedPrioIds.delete(id);
+        } else {
+            selectedPrioIds.add(id);
+            selectedSecIds.delete(id); // On ne peut pas être les deux
+        }
+        applyFilters();
+    };
+
+    window.toggleSec = function(id) {
+        if (selectedSecIds.has(id)) {
+            selectedSecIds.delete(id);
+        } else {
+            selectedSecIds.add(id);
+            selectedPrioIds.delete(id); // On ne peut pas être les deux
+        }
         applyFilters();
     };
 
     function render(filteredData) {
-        tableBody.innerHTML = filteredData.map(d => `
-                <tr class="hover:bg-blue-50 transition-colors ${selectedIds.has(d.id) ? 'bg-blue-50' : ''}">
-                    <td class="p-3 border-b text-center">
-                        <input type="checkbox" class="custom-checkbox" ${selectedIds.has(d.id) ? 'checked' : ''} onchange="toggleSelection(${d.id})">
+        tableBody.innerHTML = filteredData.map(d => {
+            let rowBg = '';
+            if (selectedPrioIds.has(d.id)) rowBg = 'bg-amber-50';
+            else if (selectedSecIds.has(d.id)) rowBg = 'bg-blue-50';
+
+            return `
+                <tr class="hover:bg-slate-100 transition-colors ${rowBg}">
+                    <td class="p-2 border-b text-center border-r border-white">
+                        <input type="checkbox" class="custom-checkbox cb-prio" ${selectedPrioIds.has(d.id) ? 'checked' : ''} onchange="togglePrio(${d.id})">
                     </td>
-                    <td class="p-3 border-b text-center font-mono">${d.n}</td>
-                    <td class="p-3 border-b font-medium text-blue-900">${d.obj}</td>
+                    <td class="p-2 border-b text-center border-r border-slate-200">
+                        <input type="checkbox" class="custom-checkbox cb-sec" ${selectedSecIds.has(d.id) ? 'checked' : ''} onchange="toggleSec(${d.id})">
+                    </td>
+                    <td class="p-3 border-b text-center font-mono pl-4">${d.n}</td>
+                    <td class="p-3 border-b font-medium text-slate-900">${d.obj}</td>
                     <td class="p-3 border-b text-center font-bold text-indigo-600">${d.t}h</td>
                     <td class="p-3 border-b text-emerald-600 font-bold font-mono text-center">${d.val}</td>
                     <td class="p-3 border-b text-xs">
@@ -303,7 +337,7 @@
                     <td class="p-3 border-b text-center"><span class="${d.exp === 'Oui' ? 'text-orange-600 font-bold bg-orange-100 px-2 py-1 rounded' : 'text-slate-400'}">${d.exp}</span></td>
                     <td class="p-3 border-b text-xs text-slate-600 whitespace-normal min-w-[200px]">${d.ing.split(' | ').join('<br>')}</td>
                 </tr>
-            `).join('');
+            `}).join('');
         countSpan.textContent = filteredData.length;
     }
 
@@ -313,8 +347,10 @@
         else { sortConfig.key = key; sortConfig.direction = 1; }
         currentData.sort((a, b) => {
             let valA = a[key], valB = b[key];
-            if (typeof valA === 'string') valA = valA.toLowerCase();
-            if (typeof valB === 'string') valB = valB.toLowerCase();
+            // Utilisation de localeCompare pour le tri alphabétique français parfait (gère Œuf, Épée, etc.)
+            if (typeof valA === 'string' && typeof valB === 'string') {
+                return valA.localeCompare(valB, 'fr') * sortConfig.direction;
+            }
             return valA < valB ? -1 * sortConfig.direction : (valA > valB ? 1 * sortConfig.direction : 0);
         });
         render(currentData);
@@ -325,8 +361,12 @@
         const op = document.querySelector('input[name="catOp"]:checked').value;
 
         currentData = data.filter(d => {
-            if (sel === 'checked' && !selectedIds.has(d.id)) return false;
-            if (sel === 'unchecked' && selectedIds.has(d.id)) return false;
+            // Filtre Checkboxes
+            if (sel === 'prio' && !selectedPrioIds.has(d.id)) return false;
+            if (sel === 'sec' && !selectedSecIds.has(d.id)) return false;
+            if (sel === 'checked' && !selectedPrioIds.has(d.id) && !selectedSecIds.has(d.id)) return false;
+            if (sel === 'unchecked' && (selectedPrioIds.has(d.id) || selectedSecIds.has(d.id))) return false;
+
             if (sObj && !d.obj.toLowerCase().includes(sObj)) return false;
             if (sIng && !d.ing.toLowerCase().includes(sIng)) return false;
             if (d.n < (parseInt(minN)||0) || d.n > (parseInt(maxN)||999)) return false;
@@ -346,7 +386,7 @@
             return true;
         });
         if (sortConfig.key) {
-            sortConfig.direction *= -1;
+            sortConfig.direction *= -1; // Compense l'inversion
             sortTable(sortConfig.key);
         } else render(currentData);
     }
@@ -362,15 +402,19 @@
     render(currentData);
 
     // ==========================================
-    // LOGIQUE DU SOLVER DE PLANNINGS (COMBO STRICT)
+    // LOGIQUE DU SOLVER DE PLANNINGS
     // ==========================================
     let schedules = [];
-    let scheduleSortConfig = { key: 'eff', dir: -1 };
+    let scheduleSortConfig = { key: 'prio', dir: -1 }; // Tri principal par nombre de prio utilisées
 
     function generateSchedules() {
-        const selectedItems = data.filter(d => selectedIds.has(d.id));
-        if (selectedItems.length === 0) {
-            alert("Veuillez sélectionner au moins un objet dans le tableau en cochant sa case.");
+        // Fusionner Prio et Sec pour le Solver
+        const prioItems = data.filter(d => selectedPrioIds.has(d.id));
+        const secItems = data.filter(d => selectedSecIds.has(d.id));
+        const allSelectedItems = [...prioItems, ...secItems];
+
+        if (allSelectedItems.length === 0) {
+            alert("Veuillez sélectionner au moins un objet en priorité ou en secondaire.");
             return;
         }
 
@@ -378,23 +422,24 @@
         const tbody = document.getElementById('scheduleBody');
 
         resultsDiv.classList.remove('hidden');
-        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-500 font-semibold">Calcul en cours... Veuillez patienter.</td></tr>';
-        document.getElementById('topSchedulesContainer').classList.add('hidden'); // Cache en attendant
+        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500 font-semibold">Calcul en cours... Veuillez patienter.</td></tr>';
+        document.getElementById('topSchedulesContainer').classList.add('hidden');
 
         setTimeout(() => {
             let bestSchedulesBySet = new Map();
 
-            dfsSchedules([], 0, 0, selectedItems, new Set(), bestSchedulesBySet);
+            dfsSchedules([], 0, 0, allSelectedItems, new Set(), bestSchedulesBySet);
             schedules = Array.from(bestSchedulesBySet.values());
 
-            // Calcul du Top 3 disjoint
+            // Calcul du Top 3 disjoint (Optimisé sur le Prio > Eff)
             const top3 = findTopDisjointSchedules(schedules);
 
-            // Tri initial du grand tableau
-            schedules.sort((a, b) => b.eff - a.eff);
+            // Tri initial du tableau complet
+            scheduleSortConfig.key = 'prio';
+            scheduleSortConfig.dir = 1; // Le sortSchedules va l'inverser en -1
+            sortSchedules('prio');
 
             renderTopSchedules(top3);
-            renderSchedules();
         }, 50);
     }
 
@@ -407,7 +452,6 @@
             if (usedIds.has(item.id)) continue;
 
             if (currentTime + item.t <= 24) {
-
                 let isCombo = false;
 
                 if (currentSeq.length > 0) {
@@ -416,8 +460,7 @@
                     let cats2 = [item.c1, item.c2].filter(Boolean);
                     isCombo = cats1.some(c => cats2.includes(c));
 
-                    // RÈGLE STRICTE : Si ce n'est pas un combo, on arrête immédiatement cette branche
-                    if (!isCombo) continue;
+                    if (!isCombo) continue; // Combo STRICT
                 }
 
                 canAddMore = true;
@@ -433,29 +476,46 @@
             }
         }
 
-        // Si on ne peut plus rien ajouter, on vérifie la règle de fin de journée
         if (!canAddMore && currentTime > 0) {
             const rem = 24 - currentTime;
             if (rem === 0 || rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0) {
-                // Signature de la composition exacte
                 const signature = Array.from(usedIds).sort((a, b) => a - b).join('-');
-                if (!bestSchedulesBySet.has(signature) || bestSchedulesBySet.get(signature).gain < currentGain) {
+
+                // Calculer combien d'objets de la séquence sont des PRIORITÉS
+                let pCount = currentSeq.filter(s => selectedPrioIds.has(s.item.id)).length;
+
+                // Si on a un nouveau chemin ou s'il utilise PLUS de prios, ou si égalité de prios mais meilleur gain
+                let existing = bestSchedulesBySet.get(signature);
+                let shouldUpdate = false;
+
+                if (!existing) {
+                    shouldUpdate = true;
+                } else if (pCount > existing.prioCount) {
+                    shouldUpdate = true;
+                } else if (pCount === existing.prioCount && currentGain > existing.gain) {
+                    shouldUpdate = true;
+                }
+
+                if (shouldUpdate) {
                     bestSchedulesBySet.set(signature, {
                         path: currentSeq.map(s => ({ item: s.item, combo: s.combo, stepGain: s.stepGain })),
                         gain: currentGain,
                         time: currentTime,
-                        eff: currentGain / currentTime
+                        eff: currentGain / currentTime,
+                        prioCount: pCount
                     });
                 }
             }
         }
     }
 
+    // Le Top 3 cherche la perfection : Max de Priorités, puis Efficacité.
     function findTopDisjointSchedules(allSchedules, maxCount = 3) {
         let sorted = [...allSchedules].sort((a, b) => {
-            if (b.eff !== a.eff) return b.eff - a.eff;
-            if (b.time !== a.time) return b.time - a.time;
-            return b.gain - a.gain;
+            if (b.prioCount !== a.prioCount) return b.prioCount - a.prioCount; // 1. Max d'éléments prioritaires
+            if (b.eff !== a.eff) return b.eff - a.eff; // 2. Meilleur Gain/h
+            if (b.time !== a.time) return b.time - a.time; // 3. Durée la plus longue
+            return b.gain - a.gain; // 4. Gain total
         });
 
         let result = [];
@@ -484,25 +544,34 @@
 
         container.classList.remove('hidden');
         grid.innerHTML = topSchedules.map((s, index) => {
-            let rankStr = index === 0 ? '🥇 Atelier 1' : index === 1 ? '🥈 Atelier 2' : '🥉 Atelier 3';
+            let rankStr = index === 0 ? '🥇 Fabrique 1' : index === 1 ? '🥈 Fabrique 2' : '🥉 Fabrique 3';
             let htmlPath = s.path.map((step, i) => {
+                // Visuel pour l'étoile
+                let isPrio = selectedPrioIds.has(step.item.id);
+                let prioStar = isPrio ? `<span class="text-amber-500 font-black mr-1 text-sm">★</span>` : '';
+
                 let color = step.combo
                     ? 'bg-emerald-100 border-emerald-300 text-emerald-800 shadow-sm'
                     : 'bg-white border-slate-200 text-slate-700';
                 let comboLabel = step.combo ? `<span class="text-[10px] font-bold text-emerald-600 ml-1">(x2)</span>` : '';
                 let arrow = i < s.path.length - 1 ? `<span class="mx-1 text-slate-400 font-bold text-xs">➔</span>` : '';
+
                 return `<div class="inline-flex items-center mt-1">
-                                <span class="border px-1.5 py-0.5 rounded text-xs font-semibold whitespace-nowrap ${color}">
-                                    ${step.item.obj} ${comboLabel}
+                                <span class="border px-1.5 py-0.5 rounded text-xs font-semibold whitespace-nowrap ${color} flex items-center">
+                                    ${prioStar}${step.item.obj} ${comboLabel}
                                 </span>${arrow}
                             </div>`;
             }).join('');
 
             return `
-                    <div class="bg-white rounded-md p-4 shadow-sm border border-indigo-200 flex flex-col justify-between hover:shadow-md transition-shadow">
+                    <div class="bg-white rounded-md p-4 shadow-sm border border-amber-200 flex flex-col justify-between hover:shadow-md transition-shadow relative">
+                        <div class="absolute -top-3 -right-3 bg-amber-500 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center shadow" title="Objets prioritaires inclus">
+                            ${s.prioCount}★
+                        </div>
+
                         <div>
-                            <div class="flex justify-between items-start mb-3 border-b border-slate-100 pb-2">
-                                <span class="font-black text-lg text-indigo-900">${rankStr}</span>
+                            <div class="flex justify-between items-start mb-3 border-b border-slate-100 pb-2 pr-4">
+                                <span class="font-black text-lg text-amber-900">${rankStr}</span>
                                 <div class="text-right leading-tight">
                                     <div class="text-[10px] text-slate-400 uppercase tracking-wide font-bold">Efficacité</div>
                                     <div class="font-black text-blue-600 text-lg">${s.eff.toFixed(2)}<span class="text-xs font-normal text-slate-500">/h</span></div>
@@ -513,7 +582,7 @@
                             </div>
                         </div>
                         <div class="flex justify-between bg-slate-50 p-2.5 rounded-md items-center border border-slate-100 mt-2">
-                            <span class="font-mono text-indigo-900 font-bold bg-indigo-100 px-2 py-0.5 rounded text-sm">${s.time}h</span>
+                            <span class="font-mono text-slate-600 font-bold bg-slate-200 px-2 py-0.5 rounded text-sm">${s.time}h</span>
                             <span class="font-black text-emerald-600 text-xl">${s.gain} <span class="text-[10px] uppercase text-emerald-700 font-bold">Gain</span></span>
                         </div>
                     </div>
@@ -521,7 +590,6 @@
         }).join('');
     }
 
-    // --- AFFICHAGE DU TABLEAU COMPLET ---
     function sortSchedules(key) {
         if (scheduleSortConfig.key === key) {
             scheduleSortConfig.dir *= -1;
@@ -531,6 +599,7 @@
         }
 
         schedules.sort((a, b) => {
+            if (key === 'prio') return (a.prioCount - b.prioCount) * scheduleSortConfig.dir;
             if (key === 'gain') return (a.gain - b.gain) * scheduleSortConfig.dir;
             if (key === 'time') return (a.time - b.time) * scheduleSortConfig.dir;
             if (key === 'eff') return (a.eff - b.eff) * scheduleSortConfig.dir;
@@ -544,7 +613,7 @@
         const tbody = document.getElementById('scheduleBody');
 
         if (schedules.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-500">Aucun planning parfait trouvé. Essayez de sélectionner plus d\'objets partageant les mêmes catégories.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500">Aucun planning parfait trouvé avec cette sélection.</td></tr>';
             return;
         }
 
@@ -553,6 +622,9 @@
 
         tbody.innerHTML = displaySchedules.map(s => {
             let htmlPath = s.path.map((step, i) => {
+                let isPrio = selectedPrioIds.has(step.item.id);
+                let prioStar = isPrio ? `<span class="text-amber-500 font-black mr-1 text-[10px]">★</span>` : '';
+
                 let color = step.combo
                     ? 'bg-emerald-100 border-emerald-300 text-emerald-800 font-semibold shadow-sm'
                     : 'bg-white border-slate-300 text-slate-700';
@@ -560,16 +632,17 @@
                 let arrow = i < s.path.length - 1 ? `<span class="mx-1.5 text-slate-400 font-bold">➔</span>` : '';
 
                 return `<div class="inline-flex items-center mt-1 mb-1">
-                                <span class="border px-2 py-1 rounded text-xs whitespace-nowrap ${color}">
-                                    ${step.item.obj} ${comboLabel}
+                                <span class="border px-2 py-1 rounded text-xs whitespace-nowrap ${color} flex items-center">
+                                    ${prioStar}${step.item.obj} ${comboLabel}
                                 </span>${arrow}
                             </div>`;
             }).join('');
 
             return `
-                    <tr class="hover:bg-indigo-50/50 transition-colors border-b bg-white">
+                    <tr class="hover:bg-amber-50/30 transition-colors border-b bg-white">
                         <td class="p-3 flex flex-wrap items-center">${htmlPath}</td>
-                        <td class="p-3 text-center font-mono text-indigo-800 font-bold">${s.time}h</td>
+                        <td class="p-3 text-center font-bold text-amber-600 text-lg">${s.prioCount}</td>
+                        <td class="p-3 text-center font-mono text-slate-700 font-bold">${s.time}h</td>
                         <td class="p-3 text-center font-bold text-blue-600">${s.eff.toFixed(2)}</td>
                         <td class="p-3 text-center font-bold text-emerald-600 text-lg">${s.gain}</td>
                     </tr>
@@ -577,7 +650,7 @@
         }).join('');
 
         if (schedules.length > maxDisplay) {
-            tbody.innerHTML += `<tr><td colspan="4" class="p-4 text-center text-slate-500 italic bg-slate-50">Affichage limité aux ${maxDisplay} meilleurs résultats du tableau (sur ${schedules.length} calculés).</td></tr>`;
+            tbody.innerHTML += `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic bg-slate-50">Affichage limité aux ${maxDisplay} meilleurs résultats du tableau.</td></tr>`;
         }
     }
 </script>
