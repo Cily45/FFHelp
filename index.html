@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fabrique de l'Île - Base de données & Simulateur</title>
+    <title>Fabrique de l'Île - Simulateur Hebdomadaire Expert</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .table-container { max-height: 55vh; overflow-y: auto; }
@@ -13,28 +13,34 @@
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* Checkboxes personnalisées */
         .custom-checkbox { width: 1.25rem; height: 1.25rem; cursor: pointer; }
-        .cb-prio { accent-color: #f59e0b; } /* Ambre pour Priorité */
-        .cb-sec { accent-color: #3b82f6; } /* Bleu pour Secondaire */
+        .cb-prio { accent-color: #f59e0b; }
+        .cb-sec { accent-color: #3b82f6; }
+
+        .select-market { font-size: 0.75rem; padding: 0.1rem 0.25rem; border-radius: 0.25rem; border: 1px solid #cbd5e1; outline: none; background: white; cursor: pointer; }
+        .select-pop { color: #b45309; }
+        .select-dem { color: #047857; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-8">
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="max-w-[1400px] mx-auto space-y-6">
 
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-slate-700">
         <header class="mb-6 border-b pb-4 flex justify-between items-end">
             <div>
                 <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île</h1>
-                <p class="text-slate-500">Outil de filtrage avancé & Temps de production</p>
+                <p class="text-slate-500">Planificateur Hebdomadaire & Dynamique du Marché</p>
             </div>
-            <div class="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-                <span id="count">0</span> résultat(s)
+            <div class="space-x-2">
+                <button onclick="clearLocalStorage()" class="text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded hover:bg-red-200 font-semibold transition">Vider la sauvegarde</button>
+                <span class="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded border border-blue-200">
+                        <span id="count">0</span> affiché(s)
+                    </span>
             </div>
         </header>
 
         <div class="bg-slate-100 p-4 rounded-md mb-6 border border-slate-200 text-sm">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 <div class="space-y-2">
                     <label class="block font-semibold text-slate-700">Recherche textuelle</label>
                     <input type="text" id="searchObj" placeholder="Nom de l'objet..." class="w-full border rounded px-3 py-1.5 outline-none focus:border-blue-500">
@@ -53,50 +59,24 @@
                     </div>
                 </div>
 
-                <div class="space-y-2 lg:col-span-2">
-                    <label class="block font-semibold text-slate-700">Filtre de Catégories</label>
+                <div class="space-y-2 xl:col-span-2">
+                    <label class="block font-semibold text-slate-700">Filtre de Catégories & Statut</label>
                     <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 items-start sm:items-center">
-                        <select id="cat1" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500 w-full sm:w-1/3">
-                            <option value="">-- Catégorie A --</option>
-                        </select>
+                        <select id="cat1" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500 w-full sm:w-1/3"><option value="">-- Catégorie A --</option></select>
 
                         <div class="flex items-center space-x-3 bg-white px-3 py-1.5 border rounded">
-                            <label class="flex items-center space-x-1 cursor-pointer">
-                                <input type="radio" name="catOp" value="AND" checked class="text-blue-600">
-                                <span>ET</span>
-                            </label>
-                            <label class="flex items-center space-x-1 cursor-pointer">
-                                <input type="radio" name="catOp" value="OR" class="text-blue-600">
-                                <span>OU</span>
-                            </label>
+                            <label class="flex items-center space-x-1 cursor-pointer"><input type="radio" name="catOp" value="AND" checked class="text-blue-600"><span>ET</span></label>
+                            <label class="flex items-center space-x-1 cursor-pointer"><input type="radio" name="catOp" value="OR" class="text-blue-600"><span>OU</span></label>
                         </div>
 
-                        <select id="cat2" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500 w-full sm:w-1/3">
-                            <option value="">-- Catégorie B --</option>
-                        </select>
+                        <select id="cat2" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500 w-full sm:w-1/3"><option value="">-- Catégorie B --</option></select>
                     </div>
 
                     <div class="pt-1 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-                        <div class="flex items-center">
-                            <label class="mr-2 font-semibold text-slate-700">Temps :</label>
-                            <select id="filterTime" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500">
-                                <option value="">Tous</option>
-                                <option value="4">4 Heures</option>
-                                <option value="6">6 Heures</option>
-                                <option value="8">8 Heures</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center">
-                            <label class="mr-2 font-semibold text-slate-700">Expert :</label>
-                            <select id="filterExp" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500">
-                                <option value="">Tous</option>
-                                <option value="Oui">Oui</option>
-                                <option value="Non">Non</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center">
-                            <label class="mr-2 font-semibold text-slate-700">Sélection :</label>
-                            <select id="filterSel" class="border rounded px-3 py-1.5 outline-none focus:border-amber-500 bg-white">
+                        <div class="flex items-center"><label class="mr-2 font-semibold text-slate-700">Temps :</label><select id="filterTime" class="border rounded px-3 py-1.5 outline-none"><option value="">Tous</option><option value="4">4h</option><option value="6">6h</option><option value="8">8h</option></select></div>
+                        <div class="flex items-center"><label class="mr-2 font-semibold text-slate-700">Expert :</label><select id="filterExp" class="border rounded px-3 py-1.5 outline-none"><option value="">Tous</option><option value="Oui">Oui</option><option value="Non">Non</option></select></div>
+                        <div class="flex items-center"><label class="mr-2 font-semibold text-slate-700">Sélection :</label>
+                            <select id="filterSel" class="border rounded px-3 py-1.5 outline-none focus:border-amber-500 bg-white font-semibold">
                                 <option value="all">Tous</option>
                                 <option value="prio">Priorités (★)</option>
                                 <option value="sec">Secondaires (+)</option>
@@ -107,25 +87,22 @@
                     </div>
                 </div>
             </div>
-
-            <div class="mt-4 flex justify-end">
-                <button onclick="resetFilters()" class="text-sm text-slate-500 hover:text-slate-800 underline">Réinitialiser les filtres</button>
-            </div>
         </div>
 
         <div class="table-container border border-slate-200 rounded-md">
-            <table class="w-full text-left border-collapse whitespace-nowrap">
+            <table class="w-full text-left border-collapse whitespace-nowrap text-sm">
                 <thead class="bg-slate-200 sticky top-0 shadow-sm z-10">
                 <tr>
-                    <th class="p-3 border-b text-center font-bold text-amber-600 w-10" title="Éléments à utiliser en priorité">★<br><span class="text-[10px] font-normal text-slate-600">Prio</span></th>
-                    <th class="p-3 border-b text-center font-bold text-blue-600 w-10 border-r border-slate-300" title="Éléments pour compléter le planning">+<br><span class="text-[10px] font-normal text-slate-600">Sec</span></th>
-                    <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300 pl-4" onclick="sortTable('n')">Niveau ↕</th>
-                    <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('obj')">Objet ↕</th>
-                    <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('t')">Temps ↕</th>
-                    <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('val')">Valeur ↕</th>
-                    <th class="p-3 border-b font-semibold">Catégories</th>
-                    <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('exp')">Expert ↕</th>
-                    <th class="p-3 border-b font-semibold w-full">Ingrédients</th>
+                    <th class="p-2 border-b text-center font-bold text-amber-600 w-8" title="Priorité">★</th>
+                    <th class="p-2 border-b text-center font-bold text-blue-600 w-8 border-r border-slate-300" title="Secondaire">+</th>
+                    <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center w-12" onclick="sortTable('n')">Niv ↕</th>
+                    <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('obj')">Objet ↕</th>
+                    <th class="p-2 border-b font-semibold bg-orange-100 text-orange-900 border-x border-slate-300 w-32 text-center" title="Popularité (Ne change pas la semaine)">🔥 Popularité</th>
+                    <th class="p-2 border-b font-semibold bg-emerald-100 text-emerald-900 border-r border-slate-300 w-32 text-center" title="Demande Initiale (Mardi/Mercredi)">📉 Demande In.</th>
+                    <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center" onclick="sortTable('t')">Temps ↕</th>
+                    <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center" onclick="sortTable('val')">Val. Base ↕</th>
+                    <th class="p-2 border-b font-semibold">Catégories</th>
+                    <th class="p-2 border-b font-semibold w-full">Ingrédients</th>
                 </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -134,48 +111,25 @@
     </div>
 
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-amber-500">
-        <h2 class="text-2xl font-bold text-slate-800 mb-2">Simulateur de Plannings Parfaits (24h)</h2>
-        <ul class="text-slate-600 mb-4 text-sm list-disc list-inside space-y-1">
-            <li><span class="font-semibold text-amber-600">Priorité (★) vs Secondaire (+) :</span> L'algorithme cherchera à construire des journées complètes en utilisant le maximum d'objets prioritaires, et se servira des secondaires pour boucher les trous.</li>
-            <li><span class="font-semibold text-emerald-600">Chaîne de Combo stricte :</span> Chaque objet (après le 1er) DOIT déclencher le bonus x2.</li>
-            <li>Le reste du temps journalier doit être utilisable (multiple de 4, 6 ou 8).</li>
-        </ul>
-
-        <button onclick="generateSchedules()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-6 rounded shadow transition-colors">
-            Générer les Plannings Parfaits
-        </button>
-
-        <div id="solverResults" class="hidden mt-6 space-y-8">
-
-            <div id="topSchedulesContainer" class="hidden bg-amber-50/30 p-5 rounded-lg border border-amber-200 shadow-sm">
-                <h3 class="text-xl font-bold text-amber-900 mb-4 flex items-center">
-                    <span class="text-2xl mr-2">🏆</span> Les 3 Meilleures Fabriques Indépendantes
-                    <span class="text-sm font-normal text-amber-600 ml-3">(Aucun objet en commun)</span>
-                </h3>
-                <div id="topSchedulesGrid" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                </div>
-            </div>
-
+        <div class="flex flex-col md:flex-row justify-between md:items-center mb-4">
             <div>
-                <div class="flex justify-between items-end mb-2">
-                    <h3 class="text-lg font-semibold text-slate-800">Tous les plannings générés (<span id="scheduleCount">0</span>)</h3>
-                </div>
-                <div class="table-container border border-slate-200 rounded-md">
-                    <table class="w-full text-left border-collapse whitespace-nowrap">
-                        <thead class="bg-slate-100 sticky top-0 shadow-sm z-10">
-                        <tr>
-                            <th class="p-3 border-b font-semibold text-slate-700">Détail du Planning Parfait</th>
-                            <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-20 text-slate-700" onclick="sortSchedules('prio')" title="Nombre d'objets prioritaires utilisés">★ Prio ↕</th>
-                            <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-20 text-slate-700" onclick="sortSchedules('time')">Temps ↕</th>
-                            <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-28 text-slate-700" onclick="sortSchedules('eff')">Gain/h ↕</th>
-                            <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-28 text-slate-700" onclick="sortSchedules('gain')">Gain Total ↕</th>
-                        </tr>
-                        </thead>
-                        <tbody id="scheduleBody"></tbody>
-                    </table>
-                </div>
+                <h2 class="text-2xl font-bold text-slate-800">Planificateur Hebdomadaire (Mercredi - Dimanche)</h2>
+                <p class="text-slate-600 text-sm mt-1">L'algorithme simule la baisse de la Demande après chaque journée générée pour maximiser les profits sur la durée.</p>
+            </div>
+            <button onclick="generateWeekly()" class="mt-4 md:mt-0 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-8 rounded shadow-lg transition-transform transform hover:scale-105">
+                💾 Sauvegarder & Générer la Semaine
+            </button>
+        </div>
+
+        <div id="solverResults" class="hidden mt-6">
+
+            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-center mb-8 shadow-sm">
+                <h3 class="text-emerald-800 font-bold text-lg uppercase tracking-wider">Revenu Estimé de la Semaine</h3>
+                <div class="text-4xl font-black text-emerald-600 mt-2" id="weekTotalGain">0 <span class="text-xl">Assignats</span></div>
             </div>
 
+            <div id="weeklyGrid" class="space-y-6">
+            </div>
         </div>
     </div>
 
@@ -267,14 +221,53 @@
         { n: 114, obj: "Vinaigrette manufacturée", t: 4, val: 52, c1: "Condiment", c2: "", exp: "Non", ing: "2 x Oignon exotique | 1 x Sève insulaire | 1 x Sargasse tamamo insulaire" }
     ];
 
-    // LOGIQUE DE LA BASE DE DONNÉES
+    // LOGIQUE DU MARCHÉ
+    const POP_MULT = { 'Faible': 0.8, 'Moyenne': 1.0, 'Forte': 1.2, 'Très Forte': 1.4 };
+    const DEM_TIERS = ['Pléthorique', 'Surabondante', 'Normale', 'Insuffisante', 'Pénurie']; // 0 = Pire, 4 = Meilleur
+    const DEM_MULT = [0.6, 0.8, 1.0, 1.3, 1.6];
+
     const data = rawData.map((item, index) => ({ ...item, id: index }));
     let currentData = [...data];
 
-    // DEUX ensembles de sélection
-    const selectedPrioIds = new Set();
-    const selectedSecIds = new Set();
+    let selectedPrioIds = new Set();
+    let selectedSecIds = new Set();
+    let marketData = {}; // { id: { pop: 'Moyenne', dem: 2 } }
 
+    // Initialisation du marché par défaut
+    data.forEach(d => marketData[d.id] = { pop: 'Moyenne', dem: 2 });
+
+    // GESTION SAUVEGARDE LOCALE
+    function saveToLocalStorage() {
+        const saveObj = {
+            prio: Array.from(selectedPrioIds),
+            sec: Array.from(selectedSecIds),
+            market: marketData
+        };
+        localStorage.setItem('fabriqueSave', JSON.stringify(saveObj));
+    }
+
+    function loadFromLocalStorage() {
+        const saved = localStorage.getItem('fabriqueSave');
+        if(saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                selectedPrioIds = new Set(parsed.prio || []);
+                selectedSecIds = new Set(parsed.sec || []);
+                if(parsed.market) marketData = parsed.market;
+            } catch(e) { console.error("Erreur de lecture de la sauvegarde", e); }
+        }
+    }
+
+    function clearLocalStorage() {
+        if(confirm("Voulez-vous vraiment effacer toutes vos sélections et réglages de marché ?")) {
+            localStorage.removeItem('fabriqueSave');
+            location.reload();
+        }
+    }
+
+    loadFromLocalStorage();
+
+    // GESTION DOM
     const tableBody = document.getElementById('tableBody');
     const countSpan = document.getElementById('count');
     const inputs = ['searchObj', 'searchIng', 'minN', 'maxN', 'minV', 'maxV', 'filterExp', 'cat1', 'cat2', 'filterSel', 'filterTime'].map(id => document.getElementById(id));
@@ -291,25 +284,21 @@
     populateSelect(inputs[7]);
     populateSelect(inputs[8]);
 
-    // Fonctions de bascule exclusives (Prio / Sec)
     window.togglePrio = function(id) {
-        if (selectedPrioIds.has(id)) {
-            selectedPrioIds.delete(id);
-        } else {
-            selectedPrioIds.add(id);
-            selectedSecIds.delete(id); // On ne peut pas être les deux
-        }
+        if (selectedPrioIds.has(id)) selectedPrioIds.delete(id);
+        else { selectedPrioIds.add(id); selectedSecIds.delete(id); }
         applyFilters();
     };
 
     window.toggleSec = function(id) {
-        if (selectedSecIds.has(id)) {
-            selectedSecIds.delete(id);
-        } else {
-            selectedSecIds.add(id);
-            selectedPrioIds.delete(id); // On ne peut pas être les deux
-        }
+        if (selectedSecIds.has(id)) selectedSecIds.delete(id);
+        else { selectedSecIds.add(id); selectedPrioIds.delete(id); }
         applyFilters();
+    };
+
+    window.updateMarket = function(id, type, val) {
+        if(type === 'pop') marketData[id].pop = val;
+        if(type === 'dem') marketData[id].dem = parseInt(val);
     };
 
     function render(filteredData) {
@@ -317,6 +306,8 @@
             let rowBg = '';
             if (selectedPrioIds.has(d.id)) rowBg = 'bg-amber-50';
             else if (selectedSecIds.has(d.id)) rowBg = 'bg-blue-50';
+
+            let m = marketData[d.id];
 
             return `
                 <tr class="hover:bg-slate-100 transition-colors ${rowBg}">
@@ -326,16 +317,34 @@
                     <td class="p-2 border-b text-center border-r border-slate-200">
                         <input type="checkbox" class="custom-checkbox cb-sec" ${selectedSecIds.has(d.id) ? 'checked' : ''} onchange="toggleSec(${d.id})">
                     </td>
-                    <td class="p-3 border-b text-center font-mono pl-4">${d.n}</td>
-                    <td class="p-3 border-b font-medium text-slate-900">${d.obj}</td>
-                    <td class="p-3 border-b text-center font-bold text-indigo-600">${d.t}h</td>
-                    <td class="p-3 border-b text-emerald-600 font-bold font-mono text-center">${d.val}</td>
-                    <td class="p-3 border-b text-xs">
-                        <span class="inline-block bg-slate-200 px-2 py-1 rounded mb-1">${d.c1}</span>
-                        ${d.c2 ? `<span class="inline-block bg-slate-100 px-2 py-1 rounded italic border">${d.c2}</span>` : ''}
+                    <td class="p-2 border-b text-center font-mono">${d.n}</td>
+                    <td class="p-2 border-b font-medium text-slate-900">${d.obj}</td>
+
+                    <td class="p-2 border-b border-x border-slate-200 text-center bg-orange-50/50">
+                        <select class="select-market select-pop" onchange="updateMarket(${d.id}, 'pop', this.value)">
+                            <option value="Faible" ${m.pop==='Faible'?'selected':''}>Faible (x0.8)</option>
+                            <option value="Moyenne" ${m.pop==='Moyenne'?'selected':''}>Moyenne (x1.0)</option>
+                            <option value="Forte" ${m.pop==='Forte'?'selected':''}>Forte (x1.2)</option>
+                            <option value="Très Forte" ${m.pop==='Très Forte'?'selected':''}>Très Forte (x1.4)</option>
+                        </select>
                     </td>
-                    <td class="p-3 border-b text-center"><span class="${d.exp === 'Oui' ? 'text-orange-600 font-bold bg-orange-100 px-2 py-1 rounded' : 'text-slate-400'}">${d.exp}</span></td>
-                    <td class="p-3 border-b text-xs text-slate-600 whitespace-normal min-w-[200px]">${d.ing.split(' | ').join('<br>')}</td>
+                    <td class="p-2 border-b border-r border-slate-200 text-center bg-emerald-50/50">
+                        <select class="select-market select-dem" onchange="updateMarket(${d.id}, 'dem', this.value)">
+                            <option value="0" ${m.dem===0?'selected':''}>Pléthorique (x0.6)</option>
+                            <option value="1" ${m.dem===1?'selected':''}>Surabondante (x0.8)</option>
+                            <option value="2" ${m.dem===2?'selected':''}>Normale (x1.0)</option>
+                            <option value="3" ${m.dem===3?'selected':''}>Insuffisante (x1.3)</option>
+                            <option value="4" ${m.dem===4?'selected':''}>Pénurie (x1.6)</option>
+                        </select>
+                    </td>
+
+                    <td class="p-2 border-b text-center font-bold text-indigo-600">${d.t}h</td>
+                    <td class="p-2 border-b text-slate-600 font-mono text-center">${d.val}</td>
+                    <td class="p-2 border-b text-xs">
+                        <span class="inline-block bg-slate-200 px-1 py-0.5 rounded mb-1">${d.c1}</span>
+                        ${d.c2 ? `<span class="inline-block bg-slate-100 px-1 py-0.5 rounded italic border">${d.c2}</span>` : ''}
+                    </td>
+                    <td class="p-2 border-b text-[10px] text-slate-500 whitespace-normal min-w-[150px] leading-tight">${d.ing.split(' | ').join('<br>')}</td>
                 </tr>
             `}).join('');
         countSpan.textContent = filteredData.length;
@@ -347,10 +356,7 @@
         else { sortConfig.key = key; sortConfig.direction = 1; }
         currentData.sort((a, b) => {
             let valA = a[key], valB = b[key];
-            // Utilisation de localeCompare pour le tri alphabétique français parfait (gère Œuf, Épée, etc.)
-            if (typeof valA === 'string' && typeof valB === 'string') {
-                return valA.localeCompare(valB, 'fr') * sortConfig.direction;
-            }
+            if (typeof valA === 'string' && typeof valB === 'string') return valA.localeCompare(valB, 'fr') * sortConfig.direction;
             return valA < valB ? -1 * sortConfig.direction : (valA > valB ? 1 * sortConfig.direction : 0);
         });
         render(currentData);
@@ -361,7 +367,6 @@
         const op = document.querySelector('input[name="catOp"]:checked').value;
 
         currentData = data.filter(d => {
-            // Filtre Checkboxes
             if (sel === 'prio' && !selectedPrioIds.has(d.id)) return false;
             if (sel === 'sec' && !selectedSecIds.has(d.id)) return false;
             if (sel === 'checked' && !selectedPrioIds.has(d.id) && !selectedSecIds.has(d.id)) return false;
@@ -385,10 +390,7 @@
             }
             return true;
         });
-        if (sortConfig.key) {
-            sortConfig.direction *= -1; // Compense l'inversion
-            sortTable(sortConfig.key);
-        } else render(currentData);
+        if (sortConfig.key) { sortConfig.direction *= -1; sortTable(sortConfig.key); } else render(currentData);
     }
 
     function resetFilters() {
@@ -402,13 +404,19 @@
     render(currentData);
 
     // ==========================================
-    // LOGIQUE DU SOLVER DE PLANNINGS
+    // SOLVER HEBDOMADAIRE (Mercredi -> Dimanche)
     // ==========================================
-    let schedules = [];
-    let scheduleSortConfig = { key: 'prio', dir: -1 }; // Tri principal par nombre de prio utilisées
+    function calculateRealValue(item, demandLevel) {
+        let m = marketData[item.id];
+        let popMult = POP_MULT[m.pop];
+        let demMult = DEM_MULT[demandLevel];
+        // Multiplication avec troncature (similaire au jeu)
+        return Math.floor(item.val * popMult * demMult);
+    }
 
-    function generateSchedules() {
-        // Fusionner Prio et Sec pour le Solver
+    function generateWeekly() {
+        saveToLocalStorage();
+
         const prioItems = data.filter(d => selectedPrioIds.has(d.id));
         const secItems = data.filter(d => selectedSecIds.has(d.id));
         const allSelectedItems = [...prioItems, ...secItems];
@@ -418,58 +426,75 @@
             return;
         }
 
-        const resultsDiv = document.getElementById('solverResults');
-        const tbody = document.getElementById('scheduleBody');
-
-        resultsDiv.classList.remove('hidden');
-        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500 font-semibold">Calcul en cours... Veuillez patienter.</td></tr>';
-        document.getElementById('topSchedulesContainer').classList.add('hidden');
+        document.getElementById('solverResults').classList.remove('hidden');
+        const grid = document.getElementById('weeklyGrid');
+        grid.innerHTML = '<div class="text-center p-8 text-amber-600 font-bold animate-pulse">Calcul de la semaine en cours...</div>';
 
         setTimeout(() => {
-            let bestSchedulesBySet = new Map();
+            let dynamicDemands = {}; // Niveau de demande (0 à 4)
+            data.forEach(d => dynamicDemands[d.id] = marketData[d.id].dem);
 
-            dfsSchedules([], 0, 0, allSelectedItems, new Set(), bestSchedulesBySet);
-            schedules = Array.from(bestSchedulesBySet.values());
+            const weekDays = ['Jour 1 (Mercredi)', 'Jour 2 (Jeudi)', 'Jour 3 (Vendredi)', 'Jour 4 (Samedi)', 'Jour 5 (Dimanche)'];
+            let weeklyPlan = [];
+            let totalWeeklyGain = 0;
 
-            // Calcul du Top 3 disjoint (Optimisé sur le Prio > Eff)
-            const top3 = findTopDisjointSchedules(schedules);
+            for (let dayIndex = 0; dayIndex < 5; dayIndex++) {
+                let bestSchedulesBySet = new Map();
 
-            // Tri initial du tableau complet
-            scheduleSortConfig.key = 'prio';
-            scheduleSortConfig.dir = 1; // Le sortSchedules va l'inverser en -1
-            sortSchedules('prio');
+                // Trouver tous les combos possibles pour ce jour précis
+                dfsSchedulesDay([], 0, 0, allSelectedItems, new Set(), bestSchedulesBySet, dynamicDemands);
 
-            renderTopSchedules(top3);
+                let daySchedules = Array.from(bestSchedulesBySet.values());
+
+                // Trouver le Top 3 disjoint pour les 3 fabriques
+                let top3 = findTopDisjointSchedules(daySchedules);
+
+                // Sauvegarder pour le rendu
+                weeklyPlan.push({ dayName: weekDays[dayIndex], schedules: top3 });
+
+                // MISE A JOUR DU MARCHE POUR LE JOUR SUIVANT
+                // Chaque objet crafté voit sa demande chuter.
+                // Dans le jeu, crafter un planning de 24h sur 3 fabriques fait lourdement chuter.
+                // On simule une baisse de -1 niveau pour chaque objet utilisé.
+                top3.forEach(sched => {
+                    sched.path.forEach(step => {
+                        if (dynamicDemands[step.item.id] > 0) {
+                            dynamicDemands[step.item.id] -= 1;
+                        }
+                    });
+                    totalWeeklyGain += sched.gain;
+                });
+            }
+
+            renderWeekly(weeklyPlan, totalWeeklyGain);
         }, 50);
     }
 
-    function dfsSchedules(currentSeq, currentGain, currentTime, items, usedIds, bestSchedulesBySet) {
+    function dfsSchedulesDay(currentSeq, currentGain, currentTime, items, usedIds, bestSchedulesBySet, dynamicDemands) {
         let canAddMore = false;
 
         for (let i = 0; i < items.length; i++) {
             let item = items[i];
-
             if (usedIds.has(item.id)) continue;
 
             if (currentTime + item.t <= 24) {
                 let isCombo = false;
-
                 if (currentSeq.length > 0) {
                     let lastItem = currentSeq[currentSeq.length - 1].item;
                     let cats1 = [lastItem.c1, lastItem.c2].filter(Boolean);
                     let cats2 = [item.c1, item.c2].filter(Boolean);
                     isCombo = cats1.some(c => cats2.includes(c));
-
-                    if (!isCombo) continue; // Combo STRICT
+                    if (!isCombo) continue;
                 }
 
                 canAddMore = true;
-                let stepGain = isCombo ? item.val * 2 : item.val;
+                let baseRealVal = calculateRealValue(item, dynamicDemands[item.id]);
+                let stepGain = isCombo ? baseRealVal * 2 : baseRealVal;
 
                 currentSeq.push({ item: item, combo: isCombo, stepGain: stepGain });
                 usedIds.add(item.id);
 
-                dfsSchedules(currentSeq, currentGain + stepGain, currentTime + item.t, items, usedIds, bestSchedulesBySet);
+                dfsSchedulesDay(currentSeq, currentGain + stepGain, currentTime + item.t, items, usedIds, bestSchedulesBySet, dynamicDemands);
 
                 usedIds.delete(item.id);
                 currentSeq.pop();
@@ -480,21 +505,10 @@
             const rem = 24 - currentTime;
             if (rem === 0 || rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0) {
                 const signature = Array.from(usedIds).sort((a, b) => a - b).join('-');
-
-                // Calculer combien d'objets de la séquence sont des PRIORITÉS
                 let pCount = currentSeq.filter(s => selectedPrioIds.has(s.item.id)).length;
 
-                // Si on a un nouveau chemin ou s'il utilise PLUS de prios, ou si égalité de prios mais meilleur gain
                 let existing = bestSchedulesBySet.get(signature);
-                let shouldUpdate = false;
-
-                if (!existing) {
-                    shouldUpdate = true;
-                } else if (pCount > existing.prioCount) {
-                    shouldUpdate = true;
-                } else if (pCount === existing.prioCount && currentGain > existing.gain) {
-                    shouldUpdate = true;
-                }
+                let shouldUpdate = !existing || (pCount > existing.prioCount) || (pCount === existing.prioCount && currentGain > existing.gain);
 
                 if (shouldUpdate) {
                     bestSchedulesBySet.set(signature, {
@@ -509,22 +523,19 @@
         }
     }
 
-    // Le Top 3 cherche la perfection : Max de Priorités, puis Efficacité.
     function findTopDisjointSchedules(allSchedules, maxCount = 3) {
         let sorted = [...allSchedules].sort((a, b) => {
-            if (b.prioCount !== a.prioCount) return b.prioCount - a.prioCount; // 1. Max d'éléments prioritaires
-            if (b.eff !== a.eff) return b.eff - a.eff; // 2. Meilleur Gain/h
-            if (b.time !== a.time) return b.time - a.time; // 3. Durée la plus longue
-            return b.gain - a.gain; // 4. Gain total
+            if (b.prioCount !== a.prioCount) return b.prioCount - a.prioCount;
+            if (b.eff !== a.eff) return b.eff - a.eff;
+            if (b.time !== a.time) return b.time - a.time;
+            return b.gain - a.gain;
         });
 
         let result = [];
         let globalUsedIds = new Set();
 
         for (let s of sorted) {
-            let hasOverlap = s.path.some(step => globalUsedIds.has(step.item.id));
-
-            if (!hasOverlap) {
+            if (!s.path.some(step => globalUsedIds.has(step.item.id))) {
                 result.push(s);
                 s.path.forEach(step => globalUsedIds.add(step.item.id));
                 if (result.length >= maxCount) break;
@@ -533,125 +544,63 @@
         return result;
     }
 
-    function renderTopSchedules(topSchedules) {
-        const container = document.getElementById('topSchedulesContainer');
-        const grid = document.getElementById('topSchedulesGrid');
+    function renderWeekly(weeklyPlan, totalGain) {
+        document.getElementById('weekTotalGain').innerHTML = totalGain + ' <span class="text-xl font-normal">Assignats</span>';
+        const grid = document.getElementById('weeklyGrid');
 
-        if (topSchedules.length === 0) {
-            container.classList.add('hidden');
-            return;
-        }
+        grid.innerHTML = weeklyPlan.map(day => {
+            if (day.schedules.length === 0) {
+                return `
+                        <div class="bg-white rounded-lg border border-slate-200 p-4 shadow-sm">
+                            <h3 class="font-bold text-lg text-slate-800 border-b pb-2 mb-3">${day.dayName}</h3>
+                            <div class="text-slate-500 italic text-center py-4">Pas assez d'objets sélectionnés pour générer une journée valide.</div>
+                        </div>
+                    `;
+            }
 
-        container.classList.remove('hidden');
-        grid.innerHTML = topSchedules.map((s, index) => {
-            let rankStr = index === 0 ? '🥇 Fabrique 1' : index === 1 ? '🥈 Fabrique 2' : '🥉 Fabrique 3';
-            let htmlPath = s.path.map((step, i) => {
-                // Visuel pour l'étoile
-                let isPrio = selectedPrioIds.has(step.item.id);
-                let prioStar = isPrio ? `<span class="text-amber-500 font-black mr-1 text-sm">★</span>` : '';
+            let dayHtml = day.schedules.map((s, idx) => {
+                let htmlPath = s.path.map((step, i) => {
+                    let isPrio = selectedPrioIds.has(step.item.id);
+                    let prioStar = isPrio ? `<span class="text-amber-500 font-black mr-1 text-[10px]">★</span>` : '';
+                    let color = step.combo ? 'bg-emerald-100 border-emerald-300 text-emerald-800' : 'bg-white border-slate-200 text-slate-700';
+                    let arrow = i < s.path.length - 1 ? `<span class="mx-1 text-slate-400 font-bold text-xs">➔</span>` : '';
 
-                let color = step.combo
-                    ? 'bg-emerald-100 border-emerald-300 text-emerald-800 shadow-sm'
-                    : 'bg-white border-slate-200 text-slate-700';
-                let comboLabel = step.combo ? `<span class="text-[10px] font-bold text-emerald-600 ml-1">(x2)</span>` : '';
-                let arrow = i < s.path.length - 1 ? `<span class="mx-1 text-slate-400 font-bold text-xs">➔</span>` : '';
+                    return `<div class="inline-flex items-center mt-1">
+                                    <span class="border px-1.5 py-0.5 rounded text-xs font-semibold whitespace-nowrap ${color} flex items-center shadow-sm">
+                                        ${prioStar}${step.item.obj}
+                                    </span>${arrow}
+                                </div>`;
+                }).join('');
 
-                return `<div class="inline-flex items-center mt-1">
-                                <span class="border px-1.5 py-0.5 rounded text-xs font-semibold whitespace-nowrap ${color} flex items-center">
-                                    ${prioStar}${step.item.obj} ${comboLabel}
-                                </span>${arrow}
-                            </div>`;
+                return `
+                        <div class="flex flex-col md:flex-row md:items-center justify-between bg-slate-50 border border-slate-100 p-3 rounded-md mt-2">
+                            <div class="flex-1 pr-4">
+                                <div class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">Fabrique ${idx + 1}</div>
+                                <div class="flex flex-wrap items-center">${htmlPath}</div>
+                            </div>
+                            <div class="flex items-center mt-3 md:mt-0 space-x-4 border-t md:border-t-0 md:border-l border-slate-200 pt-2 md:pt-0 md:pl-4">
+                                <div class="text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Durée</div><div class="font-mono font-bold text-indigo-900">${s.time}h</div></div>
+                                <div class="text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Gain/h</div><div class="font-bold text-blue-600">${s.eff.toFixed(1)}</div></div>
+                                <div class="text-center"><div class="text-[10px] text-emerald-600 uppercase font-bold">Revenu</div><div class="font-black text-emerald-600 text-lg">${s.gain}</div></div>
+                            </div>
+                        </div>
+                    `;
             }).join('');
 
-            return `
-                    <div class="bg-white rounded-md p-4 shadow-sm border border-amber-200 flex flex-col justify-between hover:shadow-md transition-shadow relative">
-                        <div class="absolute -top-3 -right-3 bg-amber-500 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center shadow" title="Objets prioritaires inclus">
-                            ${s.prioCount}★
-                        </div>
+            let dayTotal = day.schedules.reduce((acc, curr) => acc + curr.gain, 0);
 
-                        <div>
-                            <div class="flex justify-between items-start mb-3 border-b border-slate-100 pb-2 pr-4">
-                                <span class="font-black text-lg text-amber-900">${rankStr}</span>
-                                <div class="text-right leading-tight">
-                                    <div class="text-[10px] text-slate-400 uppercase tracking-wide font-bold">Efficacité</div>
-                                    <div class="font-black text-blue-600 text-lg">${s.eff.toFixed(2)}<span class="text-xs font-normal text-slate-500">/h</span></div>
-                                </div>
-                            </div>
-                            <div class="flex flex-wrap items-center text-sm mb-4">
-                                ${htmlPath}
-                            </div>
+            return `
+                    <div class="bg-white rounded-lg border border-slate-300 p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-end border-b pb-2 mb-2">
+                            <h3 class="font-bold text-xl text-slate-800">${day.dayName}</h3>
+                            <span class="font-black text-emerald-600">+ ${dayTotal}</span>
                         </div>
-                        <div class="flex justify-between bg-slate-50 p-2.5 rounded-md items-center border border-slate-100 mt-2">
-                            <span class="font-mono text-slate-600 font-bold bg-slate-200 px-2 py-0.5 rounded text-sm">${s.time}h</span>
-                            <span class="font-black text-emerald-600 text-xl">${s.gain} <span class="text-[10px] uppercase text-emerald-700 font-bold">Gain</span></span>
+                        <div class="space-y-1">
+                            ${dayHtml}
                         </div>
                     </div>
                 `;
         }).join('');
-    }
-
-    function sortSchedules(key) {
-        if (scheduleSortConfig.key === key) {
-            scheduleSortConfig.dir *= -1;
-        } else {
-            scheduleSortConfig.key = key;
-            scheduleSortConfig.dir = -1; // Décroissant par défaut
-        }
-
-        schedules.sort((a, b) => {
-            if (key === 'prio') return (a.prioCount - b.prioCount) * scheduleSortConfig.dir;
-            if (key === 'gain') return (a.gain - b.gain) * scheduleSortConfig.dir;
-            if (key === 'time') return (a.time - b.time) * scheduleSortConfig.dir;
-            if (key === 'eff') return (a.eff - b.eff) * scheduleSortConfig.dir;
-            return 0;
-        });
-        renderSchedules();
-    }
-
-    function renderSchedules() {
-        document.getElementById('scheduleCount').textContent = schedules.length;
-        const tbody = document.getElementById('scheduleBody');
-
-        if (schedules.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500">Aucun planning parfait trouvé avec cette sélection.</td></tr>';
-            return;
-        }
-
-        const maxDisplay = 100;
-        const displaySchedules = schedules.slice(0, maxDisplay);
-
-        tbody.innerHTML = displaySchedules.map(s => {
-            let htmlPath = s.path.map((step, i) => {
-                let isPrio = selectedPrioIds.has(step.item.id);
-                let prioStar = isPrio ? `<span class="text-amber-500 font-black mr-1 text-[10px]">★</span>` : '';
-
-                let color = step.combo
-                    ? 'bg-emerald-100 border-emerald-300 text-emerald-800 font-semibold shadow-sm'
-                    : 'bg-white border-slate-300 text-slate-700';
-                let comboLabel = step.combo ? `<span class="text-[10px] font-bold text-emerald-600 ml-1 uppercase">(x2)</span>` : '';
-                let arrow = i < s.path.length - 1 ? `<span class="mx-1.5 text-slate-400 font-bold">➔</span>` : '';
-
-                return `<div class="inline-flex items-center mt-1 mb-1">
-                                <span class="border px-2 py-1 rounded text-xs whitespace-nowrap ${color} flex items-center">
-                                    ${prioStar}${step.item.obj} ${comboLabel}
-                                </span>${arrow}
-                            </div>`;
-            }).join('');
-
-            return `
-                    <tr class="hover:bg-amber-50/30 transition-colors border-b bg-white">
-                        <td class="p-3 flex flex-wrap items-center">${htmlPath}</td>
-                        <td class="p-3 text-center font-bold text-amber-600 text-lg">${s.prioCount}</td>
-                        <td class="p-3 text-center font-mono text-slate-700 font-bold">${s.time}h</td>
-                        <td class="p-3 text-center font-bold text-blue-600">${s.eff.toFixed(2)}</td>
-                        <td class="p-3 text-center font-bold text-emerald-600 text-lg">${s.gain}</td>
-                    </tr>
-                `;
-        }).join('');
-
-        if (schedules.length > maxDisplay) {
-            tbody.innerHTML += `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic bg-slate-50">Affichage limité aux ${maxDisplay} meilleurs résultats du tableau.</td></tr>`;
-        }
     }
 </script>
 </body>
