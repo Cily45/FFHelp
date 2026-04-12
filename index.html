@@ -135,26 +135,39 @@
         </ul>
 
         <button onclick="generateSchedules()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded shadow transition-colors">
-            Générer les enchaînements uniques
+            Générer les enchaînements
         </button>
 
-        <div id="solverResults" class="hidden mt-6">
-            <div class="flex justify-between items-end mb-2">
-                <h3 class="text-lg font-semibold text-slate-800"><span id="scheduleCount">0</span> combinaison(s) unique(s) possible(s)</h3>
+        <div id="solverResults" class="hidden mt-6 space-y-8">
+
+            <div id="topSchedulesContainer" class="hidden bg-indigo-50/50 p-5 rounded-lg border border-indigo-100 shadow-sm">
+                <h3 class="text-xl font-bold text-indigo-900 mb-4 flex items-center">
+                    <span class="text-2xl mr-2">🏆</span> Les 3 Meilleurs Plannings Indépendants
+                    <span class="text-sm font-normal text-indigo-600 ml-3">(Aucun objet en commun)</span>
+                </h3>
+                <div id="topSchedulesGrid" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                </div>
             </div>
-            <div class="table-container border border-slate-200 rounded-md">
-                <table class="w-full text-left border-collapse whitespace-nowrap">
-                    <thead class="bg-indigo-50 sticky top-0 shadow-sm z-10">
-                    <tr>
-                        <th class="p-3 border-b font-semibold text-slate-700">Enchaînement optimal de la journée</th>
-                        <th class="p-3 border-b font-semibold cursor-pointer hover:bg-indigo-100 text-center w-24 text-slate-700" onclick="sortSchedules('time')">Temps ↕</th>
-                        <th class="p-3 border-b font-semibold cursor-pointer hover:bg-indigo-100 text-center w-32 text-slate-700" onclick="sortSchedules('eff')">Gain/h ↕</th>
-                        <th class="p-3 border-b font-semibold cursor-pointer hover:bg-indigo-100 text-center w-32 text-slate-700" onclick="sortSchedules('gain')">Gain Total ↕</th>
-                    </tr>
-                    </thead>
-                    <tbody id="scheduleBody"></tbody>
-                </table>
+
+            <div>
+                <div class="flex justify-between items-end mb-2">
+                    <h3 class="text-lg font-semibold text-slate-800">Toutes les combinaisons générées (<span id="scheduleCount">0</span>)</h3>
+                </div>
+                <div class="table-container border border-slate-200 rounded-md">
+                    <table class="w-full text-left border-collapse whitespace-nowrap">
+                        <thead class="bg-slate-100 sticky top-0 shadow-sm z-10">
+                        <tr>
+                            <th class="p-3 border-b font-semibold text-slate-700">Enchaînement de la journée</th>
+                            <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-24 text-slate-700" onclick="sortSchedules('time')">Temps ↕</th>
+                            <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-32 text-slate-700" onclick="sortSchedules('eff')">Gain/h ↕</th>
+                            <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200 text-center w-32 text-slate-700" onclick="sortSchedules('gain')">Gain Total ↕</th>
+                        </tr>
+                        </thead>
+                        <tbody id="scheduleBody"></tbody>
+                    </table>
+                </div>
             </div>
+
         </div>
     </div>
 
@@ -349,10 +362,10 @@
     render(currentData);
 
     // ==========================================
-    // LOGIQUE DU SOLVER DE PLANNINGS (OPTIMISÉ)
+    // LOGIQUE DU SOLVER DE PLANNINGS
     // ==========================================
     let schedules = [];
-    let scheduleSortConfig = { key: 'eff', dir: -1 }; // Tri par efficacité par défaut
+    let scheduleSortConfig = { key: 'eff', dir: -1 };
 
     function generateSchedules() {
         const selectedItems = data.filter(d => selectedIds.has(d.id));
@@ -366,19 +379,21 @@
 
         resultsDiv.classList.remove('hidden');
         tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-500 font-semibold">Calcul en cours... Veuillez patienter.</td></tr>';
+        document.getElementById('topSchedulesContainer').classList.add('hidden'); // Cache en attendant
 
         setTimeout(() => {
-            // Map pour stocker uniquement LE MEILLEUR ordre pour une même combinaison d'objets
-            // La clé sera la liste des IDs triés. Ex: "12-45-67"
             let bestSchedulesBySet = new Map();
 
             dfsSchedules([], 0, 0, selectedItems, new Set(), bestSchedulesBySet);
-
-            // Transformation de la Map en tableau
             schedules = Array.from(bestSchedulesBySet.values());
 
-            // Tri initial
+            // Calcul du Top 3 disjoint
+            const top3 = findTopDisjointSchedules(schedules);
+
+            // Tri initial du grand tableau
             schedules.sort((a, b) => b.eff - a.eff);
+
+            renderTopSchedules(top3);
             renderSchedules();
         }, 50);
     }
@@ -416,24 +431,93 @@
 
         if (!canAddMore && currentTime > 0) {
             const rem = 24 - currentTime;
-
             if (rem === 0 || rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0) {
-                // Création d'une signature unique pour cette combinaison d'objets (Indépendamment de l'ordre)
                 const signature = Array.from(usedIds).sort((a, b) => a - b).join('-');
-
-                // Si on n'a jamais vu cette combinaison d'objets OU si cet ordre précis donne un meilleur gain
                 if (!bestSchedulesBySet.has(signature) || bestSchedulesBySet.get(signature).gain < currentGain) {
                     bestSchedulesBySet.set(signature, {
                         path: currentSeq.map(s => ({ item: s.item, combo: s.combo, stepGain: s.stepGain })),
                         gain: currentGain,
                         time: currentTime,
-                        eff: currentGain / currentTime // Efficacité : Gain par heure
+                        eff: currentGain / currentTime
                     });
                 }
             }
         }
     }
 
+    // --- NOUVELLE FONCTION: TOP 3 INDÉPENDANTS ---
+    function findTopDisjointSchedules(allSchedules, maxCount = 3) {
+        // Tri ultime pour le solver: 1. Eff, 2. Temps, 3. Gain
+        let sorted = [...allSchedules].sort((a, b) => {
+            if (b.eff !== a.eff) return b.eff - a.eff;
+            if (b.time !== a.time) return b.time - a.time;
+            return b.gain - a.gain;
+        });
+
+        let result = [];
+        let globalUsedIds = new Set();
+
+        for (let s of sorted) {
+            let hasOverlap = s.path.some(step => globalUsedIds.has(step.item.id));
+
+            if (!hasOverlap) {
+                result.push(s);
+                s.path.forEach(step => globalUsedIds.add(step.item.id));
+                if (result.length >= maxCount) break;
+            }
+        }
+        return result;
+    }
+
+    function renderTopSchedules(topSchedules) {
+        const container = document.getElementById('topSchedulesContainer');
+        const grid = document.getElementById('topSchedulesGrid');
+
+        if (topSchedules.length === 0) {
+            container.classList.add('hidden');
+            return;
+        }
+
+        container.classList.remove('hidden');
+        grid.innerHTML = topSchedules.map((s, index) => {
+            let rankStr = index === 0 ? '🥇 Atelier 1' : index === 1 ? '🥈 Atelier 2' : '🥉 Atelier 3';
+            let htmlPath = s.path.map((step, i) => {
+                let color = step.combo
+                    ? 'bg-emerald-100 border-emerald-300 text-emerald-800 shadow-sm'
+                    : 'bg-white border-slate-200 text-slate-700';
+                let comboLabel = step.combo ? `<span class="text-[10px] font-bold text-emerald-600 ml-1">(x2)</span>` : '';
+                let arrow = i < s.path.length - 1 ? `<span class="mx-1 text-slate-400 font-bold text-xs">➔</span>` : '';
+                return `<div class="inline-flex items-center mt-1">
+                                <span class="border px-1.5 py-0.5 rounded text-xs font-semibold whitespace-nowrap ${color}">
+                                    ${step.item.obj} ${comboLabel}
+                                </span>${arrow}
+                            </div>`;
+            }).join('');
+
+            return `
+                    <div class="bg-white rounded-md p-4 shadow-sm border border-indigo-200 flex flex-col justify-between hover:shadow-md transition-shadow">
+                        <div>
+                            <div class="flex justify-between items-start mb-3 border-b border-slate-100 pb-2">
+                                <span class="font-black text-lg text-indigo-900">${rankStr}</span>
+                                <div class="text-right leading-tight">
+                                    <div class="text-[10px] text-slate-400 uppercase tracking-wide font-bold">Efficacité</div>
+                                    <div class="font-black text-blue-600 text-lg">${s.eff.toFixed(2)}<span class="text-xs font-normal text-slate-500">/h</span></div>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center text-sm mb-4">
+                                ${htmlPath}
+                            </div>
+                        </div>
+                        <div class="flex justify-between bg-slate-50 p-2.5 rounded-md items-center border border-slate-100 mt-2">
+                            <span class="font-mono text-indigo-900 font-bold bg-indigo-100 px-2 py-0.5 rounded text-sm">${s.time}h</span>
+                            <span class="font-black text-emerald-600 text-xl">${s.gain} <span class="text-[10px] uppercase text-emerald-700 font-bold">Gain</span></span>
+                        </div>
+                    </div>
+                `;
+        }).join('');
+    }
+
+    // --- AFFICHAGE DU TABLEAU COMPLET ---
     function sortSchedules(key) {
         if (scheduleSortConfig.key === key) {
             scheduleSortConfig.dir *= -1;
@@ -460,18 +544,15 @@
             return;
         }
 
-        const maxDisplay = 300;
+        const maxDisplay = 100; // Limite l'affichage pour la perf
         const displaySchedules = schedules.slice(0, maxDisplay);
 
         tbody.innerHTML = displaySchedules.map(s => {
             let htmlPath = s.path.map((step, i) => {
                 let color = step.combo
                     ? 'bg-emerald-100 border-emerald-300 text-emerald-800 font-semibold shadow-sm'
-                    : 'bg-slate-100 border-slate-300 text-slate-700';
-                let comboLabel = step.combo
-                    ? `<span class="text-[10px] font-bold text-emerald-600 ml-1 uppercase">(Gain x2)</span>`
-                    : '';
-
+                    : 'bg-white border-slate-300 text-slate-700';
+                let comboLabel = step.combo ? `<span class="text-[10px] font-bold text-emerald-600 ml-1 uppercase">(x2)</span>` : '';
                 let arrow = i < s.path.length - 1 ? `<span class="mx-1.5 text-slate-400 font-bold">➔</span>` : '';
 
                 return `<div class="inline-flex items-center mt-1 mb-1">
@@ -482,7 +563,7 @@
             }).join('');
 
             return `
-                    <tr class="hover:bg-indigo-50/50 transition-colors border-b">
+                    <tr class="hover:bg-indigo-50/50 transition-colors border-b bg-white">
                         <td class="p-3 flex flex-wrap items-center">${htmlPath}</td>
                         <td class="p-3 text-center font-mono text-indigo-800 font-bold">${s.time}h</td>
                         <td class="p-3 text-center font-bold text-blue-600">${s.eff.toFixed(2)}</td>
@@ -492,7 +573,7 @@
         }).join('');
 
         if (schedules.length > maxDisplay) {
-            tbody.innerHTML += `<tr><td colspan="4" class="p-4 text-center text-slate-500 italic bg-slate-50">Affichage limité aux ${maxDisplay} meilleurs résultats (sur ${schedules.length} calculés).</td></tr>`;
+            tbody.innerHTML += `<tr><td colspan="4" class="p-4 text-center text-slate-500 italic bg-slate-50">Affichage limité aux ${maxDisplay} meilleurs résultats du tableau (sur ${schedules.length} calculés).</td></tr>`;
         }
     }
 </script>
