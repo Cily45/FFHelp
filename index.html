@@ -3,132 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atelier de l'Île - Base de données Avancée</title>
+    <title>Atelier de l'Île - Base de données & Simulateur</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .table-container { max-height: 65vh; overflow-y: auto; }
+        .table-container { max-height: 55vh; overflow-y: auto; }
         tr:nth-child(even) { background-color: #f8fafc; }
         .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
         .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .custom-checkbox { width: 1.25rem; height: 1.25rem; cursor: pointer; accent-color: #2563eb; }
+        .custom-checkbox { width: 1.25rem; height: 1.25rem; cursor: pointer; accent-color: #4f46e5; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-8">
-<div class="max-w-7xl mx-auto bg-white shadow-xl rounded-lg p-6">
-    <header class="mb-6 border-b pb-4 flex justify-between items-end">
-        <div>
-            <h1 class="text-3xl font-bold text-slate-800">Atelier de l'Île</h1>
-            <p class="text-slate-500">Outil de filtrage avancé & Temps de production</p>
-        </div>
-        <div class="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-            <span id="count">0</span> résultat(s)
-        </div>
-    </header>
+<div class="max-w-7xl mx-auto space-y-6">
 
-    <div class="bg-slate-100 p-4 rounded-md mb-6 border border-slate-200 text-sm">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-            <div class="space-y-2">
-                <label class="block font-semibold text-slate-700">Recherche textuelle</label>
-                <input type="text" id="searchObj" placeholder="Nom de l'objet..." class="w-full border rounded px-3 py-1.5 outline-none focus:border-blue-500">
-                <input type="text" id="searchIng" placeholder="Ingrédient requis..." class="w-full border rounded px-3 py-1.5 outline-none focus:border-blue-500">
+    <div class="bg-white shadow-xl rounded-lg p-6">
+        <header class="mb-6 border-b pb-4 flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800">Atelier de l'Île</h1>
+                <p class="text-slate-500">Outil de filtrage avancé & Temps de production</p>
             </div>
-
-            <div class="space-y-2">
-                <label class="block font-semibold text-slate-700">Niveau & Valeur</label>
-                <div class="flex space-x-2">
-                    <input type="number" id="minN" placeholder="Niv min" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
-                    <input type="number" id="maxN" placeholder="Niv max" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
-                </div>
-                <div class="flex space-x-2">
-                    <input type="number" id="minV" placeholder="Val min" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
-                    <input type="number" id="maxV" placeholder="Val max" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
-                </div>
+            <div class="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                <span id="count">0</span> résultat(s)
             </div>
+        </header>
 
-            <div class="space-y-2 lg:col-span-2">
-                <label class="block font-semibold text-slate-700">Filtre de Catégories</label>
-                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 items-start sm:items-center">
-                    <select id="cat1" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500 w-full sm:w-1/3">
-                        <option value="">-- Catégorie A --</option>
-                    </select>
+        <div class="bg-slate-100 p-4 rounded-md mb-6 border border-slate-200 text-sm">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="space-y-2">
+                    <label class="block font-semibold text-slate-700">Recherche textuelle</label>
+                    <input type="text" id="searchObj" placeholder="Nom de l'objet..." class="w-full border rounded px-3 py-1.5 outline-none focus:border-blue-500">
+                    <input type="text" id="searchIng" placeholder="Ingrédient requis..." class="w-full border rounded px-3 py-1.5 outline-none focus:border-blue-500">
+                </div>
 
-                    <div class="flex items-center space-x-3 bg-white px-3 py-1.5 border rounded">
-                        <label class="flex items-center space-x-1 cursor-pointer">
-                            <input type="radio" name="catOp" value="AND" checked class="text-blue-600">
-                            <span>ET</span>
-                        </label>
-                        <label class="flex items-center space-x-1 cursor-pointer">
-                            <input type="radio" name="catOp" value="OR" class="text-blue-600">
-                            <span>OU</span>
-                        </label>
+                <div class="space-y-2">
+                    <label class="block font-semibold text-slate-700">Niveau & Valeur</label>
+                    <div class="flex space-x-2">
+                        <input type="number" id="minN" placeholder="Niv min" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
+                        <input type="number" id="maxN" placeholder="Niv max" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
                     </div>
-
-                    <select id="cat2" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500 w-full sm:w-1/3">
-                        <option value="">-- Catégorie B --</option>
-                    </select>
+                    <div class="flex space-x-2">
+                        <input type="number" id="minV" placeholder="Val min" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
+                        <input type="number" id="maxV" placeholder="Val max" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
+                    </div>
                 </div>
 
-                <div class="pt-1 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-                    <div class="flex items-center">
-                        <label class="mr-2 font-semibold text-slate-700">Temps :</label>
-                        <select id="filterTime" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500">
-                            <option value="">Tous</option>
-                            <option value="4">4 Heures</option>
-                            <option value="6">6 Heures</option>
-                            <option value="8">8 Heures</option>
+                <div class="space-y-2 lg:col-span-2">
+                    <label class="block font-semibold text-slate-700">Filtre de Catégories</label>
+                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 items-start sm:items-center">
+                        <select id="cat1" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500 w-full sm:w-1/3">
+                            <option value="">-- Catégorie A --</option>
+                        </select>
+
+                        <div class="flex items-center space-x-3 bg-white px-3 py-1.5 border rounded">
+                            <label class="flex items-center space-x-1 cursor-pointer">
+                                <input type="radio" name="catOp" value="AND" checked class="text-blue-600">
+                                <span>ET</span>
+                            </label>
+                            <label class="flex items-center space-x-1 cursor-pointer">
+                                <input type="radio" name="catOp" value="OR" class="text-blue-600">
+                                <span>OU</span>
+                            </label>
+                        </div>
+
+                        <select id="cat2" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500 w-full sm:w-1/3">
+                            <option value="">-- Catégorie B --</option>
                         </select>
                     </div>
-                    <div class="flex items-center">
-                        <label class="mr-2 font-semibold text-slate-700">Expert :</label>
-                        <select id="filterExp" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500">
-                            <option value="">Tous</option>
-                            <option value="Oui">Oui</option>
-                            <option value="Non">Non</option>
-                        </select>
-                    </div>
-                    <div class="flex items-center">
-                        <label class="mr-2 font-semibold text-slate-700">Sélection :</label>
-                        <select id="filterSel" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500">
-                            <option value="all">Tous</option>
-                            <option value="checked">Sélectionnés (✓)</option>
-                            <option value="unchecked">Non sélectionnés</option>
-                        </select>
+
+                    <div class="pt-1 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                        <div class="flex items-center">
+                            <label class="mr-2 font-semibold text-slate-700">Temps :</label>
+                            <select id="filterTime" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500">
+                                <option value="">Tous</option>
+                                <option value="4">4 Heures</option>
+                                <option value="6">6 Heures</option>
+                                <option value="8">8 Heures</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center">
+                            <label class="mr-2 font-semibold text-slate-700">Expert :</label>
+                            <select id="filterExp" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500">
+                                <option value="">Tous</option>
+                                <option value="Oui">Oui</option>
+                                <option value="Non">Non</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center">
+                            <label class="mr-2 font-semibold text-slate-700">Sélection :</label>
+                            <select id="filterSel" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500">
+                                <option value="all">Tous</option>
+                                <option value="checked">Sélectionnés (✓)</option>
+                                <option value="unchecked">Non sélectionnés</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
 
+            <div class="mt-4 flex justify-end">
+                <button onclick="resetFilters()" class="text-sm text-slate-500 hover:text-slate-800 underline">Réinitialiser les filtres</button>
+            </div>
         </div>
 
-        <div class="mt-4 flex justify-end">
-            <button onclick="resetFilters()" class="text-sm text-slate-500 hover:text-slate-800 underline">Réinitialiser les filtres</button>
+        <div class="table-container border border-slate-200 rounded-md">
+            <table class="w-full text-left border-collapse whitespace-nowrap">
+                <thead class="bg-slate-200 sticky top-0 shadow-sm z-10">
+                <tr>
+                    <th class="p-3 border-b text-center font-semibold w-10">✓</th>
+                    <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('n')">Niveau ↕</th>
+                    <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('obj')">Objet ↕</th>
+                    <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('t')">Temps ↕</th>
+                    <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('val')">Valeur ↕</th>
+                    <th class="p-3 border-b font-semibold">Catégories</th>
+                    <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('exp')">Expert ↕</th>
+                    <th class="p-3 border-b font-semibold w-full">Ingrédients</th>
+                </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
         </div>
     </div>
 
-    <div class="table-container border border-slate-200 rounded-md">
-        <table class="w-full text-left border-collapse whitespace-nowrap">
-            <thead class="bg-slate-200 sticky top-0 shadow-sm z-10">
-            <tr>
-                <th class="p-3 border-b text-center font-semibold w-10">✓</th>
-                <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('n')">Niveau ↕</th>
-                <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('obj')">Objet ↕</th>
-                <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('t')">Temps ↕</th>
-                <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('val')">Valeur ↕</th>
-                <th class="p-3 border-b font-semibold">Catégories</th>
-                <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('exp')">Expert ↕</th>
-                <th class="p-3 border-b font-semibold w-full">Ingrédients</th>
-            </tr>
-            </thead>
-            <tbody id="tableBody">
-            </tbody>
-        </table>
+    <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-indigo-500">
+        <h2 class="text-2xl font-bold text-slate-800 mb-2">Simulateur de Planning (24h)</h2>
+        <p class="text-slate-600 mb-4 text-sm">
+            Sélectionnez des objets dans le tableau ci-dessus (en cochant les cases), puis générez toutes les combinaisons possibles.<br>
+            <span class="font-semibold">Le bonus Combo (Gain x2) s'applique automatiquement si 2 objets consécutifs partagent une catégorie et sont différents.</span><br>
+            <span class="text-orange-600 font-semibold">⚠️ Limitez votre sélection à environ 10-12 objets maximum pour ne pas figer le navigateur avec un calcul trop lourd.</span>
+        </p>
+
+        <button onclick="generateSchedules()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+            Générer les enchaînements
+        </button>
+
+        <div id="solverResults" class="hidden mt-6">
+            <div class="flex justify-between items-end mb-2">
+                <h3 class="text-lg font-semibold text-slate-800"><span id="scheduleCount">0</span> planning(s) possible(s)</h3>
+            </div>
+            <div class="table-container border border-slate-200 rounded-md">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead class="bg-indigo-50 sticky top-0 shadow-sm z-10">
+                    <tr>
+                        <th class="p-3 border-b font-semibold text-slate-700">Enchaînement de la journée</th>
+                        <th class="p-3 border-b font-semibold cursor-pointer hover:bg-indigo-100 text-center w-24 text-slate-700" onclick="sortSchedules('time')">Temps ↕</th>
+                        <th class="p-3 border-b font-semibold cursor-pointer hover:bg-indigo-100 text-center w-32 text-slate-700" onclick="sortSchedules('gain')">Gain Total ↕</th>
+                    </tr>
+                    </thead>
+                    <tbody id="scheduleBody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
+
 </div>
 
 <script>
-    // Intégration des données avec le temps de craft (t) inclus
+    // Données complètes (Identiques, avec temps et catégories)
     const rawData = [
         { n: 88, obj: "Anneau en quartz exotique", t: 6, val: 72, c1: "Accessoire", c2: "En céramique", exp: "Non", ing: "3 x Quartz insulaire | 3 x Minerai de fer insulaire | 2 x Pierre insulaire" },
         { n: 16, obj: "Bague en corail manufacturée", t: 6, val: 42, c1: "Accessoire", c2: "Marin", exp: "Non", ing: "3 x Corail insulaire | 3 x Sarment insulaire" },
@@ -213,24 +245,17 @@
         { n: 114, obj: "Vinaigrette manufacturée", t: 4, val: 52, c1: "Condiment", c2: "", exp: "Non", ing: "2 x Oignon exotique | 1 x Sève insulaire | 1 x Sargasse tamamo insulaire" }
     ];
 
-    // Ajout d'un identifiant unique (id)
+    // LOGIQUE DE LA BASE DE DONNÉES
     const data = rawData.map((item, index) => ({ ...item, id: index }));
     let currentData = [...data];
-
-    // Stockage des IDs sélectionnés
     const selectedIds = new Set();
 
-    // Éléments du DOM
     const tableBody = document.getElementById('tableBody');
     const countSpan = document.getElementById('count');
-    const inputs = [
-        'searchObj', 'searchIng', 'minN', 'maxN', 'minV', 'maxV', 'filterExp', 'cat1', 'cat2', 'filterSel', 'filterTime'
-    ].map(id => document.getElementById(id));
+    const inputs = ['searchObj', 'searchIng', 'minN', 'maxN', 'minV', 'maxV', 'filterExp', 'cat1', 'cat2', 'filterSel', 'filterTime'].map(id => document.getElementById(id));
     const radios = document.querySelectorAll('input[name="catOp"]');
 
-    // Initialisation dynamique des catégories
     const uniqueCategories = [...new Set(data.flatMap(d => [d.c1, d.c2]).filter(Boolean))].sort();
-
     function populateSelect(selectEl) {
         uniqueCategories.forEach(cat => {
             const opt = document.createElement('option');
@@ -238,155 +263,229 @@
             selectEl.appendChild(opt);
         });
     }
-    populateSelect(inputs[7]); // cat1
-    populateSelect(inputs[8]); // cat2
+    populateSelect(inputs[7]);
+    populateSelect(inputs[8]);
 
-    // Fonction pour gérer le clic sur une checkbox
     window.toggleSelection = function(id) {
-        if (selectedIds.has(id)) {
-            selectedIds.delete(id);
-        } else {
-            selectedIds.add(id);
-        }
+        if (selectedIds.has(id)) selectedIds.delete(id);
+        else selectedIds.add(id);
         applyFilters();
     };
 
-    // Fonction d'affichage du tableau
     function render(filteredData) {
         tableBody.innerHTML = filteredData.map(d => `
-                <tr class="hover:bg-blue-50 transition-colors ${selectedIds.has(d.id) ? 'bg-blue-50/50' : ''}">
+                <tr class="hover:bg-blue-50 transition-colors ${selectedIds.has(d.id) ? 'bg-blue-50' : ''}">
                     <td class="p-3 border-b text-center">
-                        <input type="checkbox" class="custom-checkbox"
-                               ${selectedIds.has(d.id) ? 'checked' : ''}
-                               onchange="toggleSelection(${d.id})">
+                        <input type="checkbox" class="custom-checkbox" ${selectedIds.has(d.id) ? 'checked' : ''} onchange="toggleSelection(${d.id})">
                     </td>
                     <td class="p-3 border-b text-center font-mono">${d.n}</td>
                     <td class="p-3 border-b font-medium text-blue-900">${d.obj}</td>
-                    <td class="p-3 border-b text-center font-bold text-indigo-600 bg-indigo-50 border-r border-l border-white">${d.t}h</td>
+                    <td class="p-3 border-b text-center font-bold text-indigo-600">${d.t}h</td>
                     <td class="p-3 border-b text-emerald-600 font-bold font-mono text-center">${d.val}</td>
                     <td class="p-3 border-b text-xs">
-                        <span class="inline-block bg-slate-200 px-2 py-1 rounded mb-1 sm:mb-0">${d.c1}</span>
+                        <span class="inline-block bg-slate-200 px-2 py-1 rounded mb-1">${d.c1}</span>
                         ${d.c2 ? `<span class="inline-block bg-slate-100 px-2 py-1 rounded italic border">${d.c2}</span>` : ''}
                     </td>
-                    <td class="p-3 border-b text-center">
-                        <span class="${d.exp === 'Oui' ? 'text-orange-600 font-bold bg-orange-100 px-2 py-1 rounded' : 'text-slate-400'}">${d.exp}</span>
-                    </td>
-                    <td class="p-3 border-b text-xs text-slate-600 whitespace-normal min-w-[250px] leading-relaxed">
-                        ${d.ing.split(' | ').join('<br>')}
-                    </td>
+                    <td class="p-3 border-b text-center"><span class="${d.exp === 'Oui' ? 'text-orange-600 font-bold bg-orange-100 px-2 py-1 rounded' : 'text-slate-400'}">${d.exp}</span></td>
+                    <td class="p-3 border-b text-xs text-slate-600 whitespace-normal min-w-[200px]">${d.ing.split(' | ').join('<br>')}</td>
                 </tr>
             `).join('');
         countSpan.textContent = filteredData.length;
     }
 
-    // Moteur de filtrage principal
-    function applyFilters() {
-        const sObj = inputs[0].value.toLowerCase();
-        const sIng = inputs[1].value.toLowerCase();
-        const minN = parseInt(inputs[2].value) || 0;
-        const maxN = parseInt(inputs[3].value) || 999;
-        const minV = parseInt(inputs[4].value) || 0;
-        const maxV = parseInt(inputs[5].value) || 9999;
-        const exp = inputs[6].value;
-        const catA = inputs[7].value;
-        const catB = inputs[8].value;
-        const sel = inputs[9].value;
-        const timeFilter = inputs[10].value;
-        const op = document.querySelector('input[name="catOp"]:checked').value;
-
-        currentData = data.filter(d => {
-            // Filtre de sélection
-            if (sel === 'checked' && !selectedIds.has(d.id)) return false;
-            if (sel === 'unchecked' && selectedIds.has(d.id)) return false;
-
-            // Filtres texte
-            if (sObj && !d.obj.toLowerCase().includes(sObj)) return false;
-            if (sIng && !d.ing.toLowerCase().includes(sIng)) return false;
-
-            // Filtres numériques
-            if (d.n < minN || d.n > maxN) return false;
-            if (d.val < minV || d.val > maxV) return false;
-
-            // Filtre Expert & Temps
-            if (exp !== "" && d.exp !== exp) return false;
-            if (timeFilter !== "" && d.t != timeFilter) return false;
-
-            // Filtre Catégories (Logique ET/OU)
-            if (catA || catB) {
-                const itemCats = [d.c1, d.c2].filter(Boolean);
-                const hasA = itemCats.includes(catA);
-                const hasB = itemCats.includes(catB);
-
-                if (catA && catB) {
-                    if (op === "AND" && !(hasA && hasB)) return false;
-                    if (op === "OR" && !(hasA || hasB)) return false;
-                } else if (catA && !hasA) {
-                    return false;
-                } else if (catB && !hasB) {
-                    return false;
-                }
-            }
-
-            return true;
-        });
-
-        // On conserve le tri actif s'il y en a un
-        if (sortConfig.key) {
-            trierDonnees(sortConfig.key, false);
-        } else {
-            render(currentData);
-        }
-    }
-
-    // Gestion du tri des colonnes
     let sortConfig = { key: null, direction: 1 };
     function sortTable(key) {
-        trierDonnees(key, true);
-    }
-
-    function trierDonnees(key, toggleDirection = false) {
-        if (toggleDirection) {
-            if (sortConfig.key === key) {
-                sortConfig.direction *= -1;
-            } else {
-                sortConfig.key = key;
-                sortConfig.direction = 1;
-            }
-        }
-
+        if (sortConfig.key === key) sortConfig.direction *= -1;
+        else { sortConfig.key = key; sortConfig.direction = 1; }
         currentData.sort((a, b) => {
-            let valA = a[key];
-            let valB = b[key];
-
+            let valA = a[key], valB = b[key];
             if (typeof valA === 'string') valA = valA.toLowerCase();
             if (typeof valB === 'string') valB = valB.toLowerCase();
-
-            if (valA < valB) return -1 * sortConfig.direction;
-            if (valA > valB) return 1 * sortConfig.direction;
-            return 0;
+            return valA < valB ? -1 * sortConfig.direction : (valA > valB ? 1 * sortConfig.direction : 0);
         });
         render(currentData);
     }
 
-    // Fonction pour vider tous les filtres
-    function resetFilters() {
-        inputs.forEach(input => {
-            if (input.id === 'filterSel') input.value = 'all';
-            else input.value = '';
+    function applyFilters() {
+        const [sObj, sIng, minN, maxN, minV, maxV, exp, catA, catB, sel, timeFilter] = inputs.map(i => i.value.toLowerCase());
+        const op = document.querySelector('input[name="catOp"]:checked').value;
+
+        currentData = data.filter(d => {
+            if (sel === 'checked' && !selectedIds.has(d.id)) return false;
+            if (sel === 'unchecked' && selectedIds.has(d.id)) return false;
+            if (sObj && !d.obj.toLowerCase().includes(sObj)) return false;
+            if (sIng && !d.ing.toLowerCase().includes(sIng)) return false;
+            if (d.n < (parseInt(minN)||0) || d.n > (parseInt(maxN)||999)) return false;
+            if (d.val < (parseInt(minV)||0) || d.val > (parseInt(maxV)||9999)) return false;
+            if (exp !== "" && d.exp.toLowerCase() !== exp) return false;
+            if (timeFilter !== "" && d.t != timeFilter) return false;
+
+            if (catA || catB) {
+                const itemCats = [d.c1.toLowerCase(), d.c2.toLowerCase()].filter(Boolean);
+                const hasA = itemCats.includes(catA);
+                const hasB = itemCats.includes(catB);
+                if (catA && catB) {
+                    if (op === "AND" && !(hasA && hasB)) return false;
+                    if (op === "OR" && !(hasA || hasB)) return false;
+                } else if ((catA && !hasA) || (catB && !hasB)) return false;
+            }
+            return true;
         });
-        radios[0].checked = true; // Remet "ET" par défaut
+        if (sortConfig.key) {
+            sortConfig.direction *= -1; // Compensate for toggle
+            sortTable(sortConfig.key);
+        } else render(currentData);
+    }
+
+    function resetFilters() {
+        inputs.forEach(input => input.value = input.id === 'filterSel' ? 'all' : '');
+        radios[0].checked = true;
         applyFilters();
     }
 
-    // Ajout des écouteurs d'événements
-    inputs.forEach(input => {
-        input.addEventListener('input', applyFilters);
-        input.addEventListener('change', applyFilters);
-    });
+    inputs.forEach(input => { input.addEventListener('input', applyFilters); input.addEventListener('change', applyFilters); });
     radios.forEach(radio => radio.addEventListener('change', applyFilters));
-
-    // Rendu initial
     render(currentData);
+
+    // ==========================================
+    // LOGIQUE DU SOLVER DE PLANNINGS (NOUVEAU)
+    // ==========================================
+    let schedules = [];
+    let scheduleSortConfig = { key: 'gain', dir: -1 };
+
+    function generateSchedules() {
+        const selectedItems = data.filter(d => selectedIds.has(d.id));
+        if (selectedItems.length === 0) {
+            alert("Veuillez sélectionner au moins un objet dans le tableau en cochant sa case.");
+            return;
+        }
+        if (selectedItems.length > 12) {
+            if(!confirm("⚠️ Vous avez sélectionné plus de 12 objets. Le calcul de toutes les combinaisons peut être très long et figer la page. Voulez-vous continuer ?")) {
+                return;
+            }
+        }
+
+        schedules = [];
+        const resultsDiv = document.getElementById('solverResults');
+        const tbody = document.getElementById('scheduleBody');
+
+        resultsDiv.classList.remove('hidden');
+        tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500 font-semibold">Calcul en cours... Veuillez patienter.</td></tr>';
+
+        // Utilisation de setTimeout pour laisser l'interface afficher "Calcul en cours..."
+        setTimeout(() => {
+            dfsSchedules([], 0, 0, selectedItems);
+
+            // Tri par défaut (Gain décroissant)
+            schedules.sort((a, b) => b.gain - a.gain);
+            renderSchedules();
+        }, 50);
+    }
+
+    // Parcours en profondeur (Backtracking) pour trouver toutes les compos de 24h
+    function dfsSchedules(currentSeq, currentGain, currentTime, items) {
+        let canAddMore = false;
+
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i];
+
+            if (currentTime + item.t <= 24) {
+                canAddMore = true;
+                let isCombo = false;
+
+                // Vérification du combo avec l'objet précédent
+                if (currentSeq.length > 0) {
+                    let lastItem = currentSeq[currentSeq.length - 1].item;
+                    // Ne peut pas faire de combo avec EXACTEMENT le même objet consécutivement
+                    if (lastItem.id !== item.id) {
+                        let cats1 = [lastItem.c1, lastItem.c2].filter(Boolean);
+                        let cats2 = [item.c1, item.c2].filter(Boolean);
+                        isCombo = cats1.some(c => cats2.includes(c)); // Partagent au moins 1 catégorie
+                    }
+                }
+
+                // Si combo, le gain est doublé pour cet objet
+                let stepGain = isCombo ? item.val * 2 : item.val;
+
+                currentSeq.push({ item: item, combo: isCombo, stepGain: stepGain });
+                dfsSchedules(currentSeq, currentGain + stepGain, currentTime + item.t, items);
+                currentSeq.pop();
+            }
+        }
+
+        // Si on ne peut plus rien rajouter et qu'on a bien rempli la journée (on garde tout ce qui est >= 16h pour être sûr)
+        if (!canAddMore && currentTime > 0) {
+            // Pour être strict sur la demande "soit de 24h", on peut forcer (currentTime === 24)
+            // Mais pour ne pas bloquer si le joueur prend que du 6 et du 8, on accepte la fin de branche
+            // Ici, j'accepte tout planning où on ne peut plus rien ajouter.
+            schedules.push({
+                path: currentSeq.map(s => ({ item: s.item, combo: s.combo, stepGain: s.stepGain })),
+                gain: currentGain,
+                time: currentTime
+            });
+        }
+    }
+
+    function sortSchedules(key) {
+        if (scheduleSortConfig.key === key) {
+            scheduleSortConfig.dir *= -1;
+        } else {
+            scheduleSortConfig.key = key;
+            scheduleSortConfig.dir = -1; // Décroissant par défaut
+        }
+
+        schedules.sort((a, b) => {
+            if (key === 'gain') return (a.gain - b.gain) * scheduleSortConfig.dir;
+            if (key === 'time') return (a.time - b.time) * scheduleSortConfig.dir;
+            return 0;
+        });
+        renderSchedules();
+    }
+
+    function renderSchedules() {
+        document.getElementById('scheduleCount').textContent = schedules.length;
+        const tbody = document.getElementById('scheduleBody');
+
+        if (schedules.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500">Aucun enchaînement valide trouvé avec cette sélection.</td></tr>';
+            return;
+        }
+
+        // Limite d'affichage pour ne pas faire laguer le navigateur HTML
+        const maxDisplay = 300;
+        const displaySchedules = schedules.slice(0, maxDisplay);
+
+        tbody.innerHTML = displaySchedules.map(s => {
+            let htmlPath = s.path.map((step, i) => {
+                let color = step.combo
+                    ? 'bg-emerald-100 border-emerald-300 text-emerald-800 font-semibold shadow-sm'
+                    : 'bg-slate-100 border-slate-300 text-slate-700';
+                let comboLabel = step.combo
+                    ? `<span class="text-[10px] font-bold text-emerald-600 ml-1 uppercase">(Gain x2)</span>`
+                    : '';
+
+                let arrow = i < s.path.length - 1 ? `<span class="mx-1.5 text-slate-400 font-bold">➔</span>` : '';
+
+                return `<div class="inline-flex items-center mt-1 mb-1">
+                                <span class="border px-2 py-1 rounded text-xs whitespace-nowrap ${color}">
+                                    ${step.item.obj} ${comboLabel}
+                                </span>${arrow}
+                            </div>`;
+            }).join('');
+
+            return `
+                    <tr class="hover:bg-indigo-50/50 transition-colors border-b">
+                        <td class="p-3 flex flex-wrap items-center">${htmlPath}</td>
+                        <td class="p-3 text-center font-mono text-indigo-800 font-bold">${s.time}h</td>
+                        <td class="p-3 text-center font-bold text-emerald-600 text-lg">${s.gain}</td>
+                    </tr>
+                `;
+        }).join('');
+
+        if (schedules.length > maxDisplay) {
+            tbody.innerHTML += `<tr><td colspan="3" class="p-4 text-center text-slate-500 italic bg-slate-50">Affichage limité aux ${maxDisplay} meilleurs résultats (sur ${schedules.length} calculés).</td></tr>`;
+        }
+    }
 </script>
 </body>
 </html>
