@@ -13,17 +13,16 @@
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        .custom-checkbox { width: 1.25rem; height: 1.25rem; cursor: pointer; }
-        .cb-prio { accent-color: #f59e0b; }
-        .cb-sec { accent-color: #3b82f6; }
+        .custom-checkbox { width: 1.25rem; height: 1.25rem; cursor: pointer; accent-color: #4f46e5; }
 
-        .select-market { font-size: 0.75rem; padding: 0.1rem 0.25rem; border-radius: 0.25rem; border: 1px solid #cbd5e1; outline: none; background: white; cursor: pointer; }
+        .select-market { font-size: 0.75rem; padding: 0.1rem 0.25rem; border-radius: 0.25rem; border: 1px solid #cbd5e1; outline: none; background: white; cursor: pointer; width: 100%; text-align: center; }
         .select-pop { color: #b45309; }
         .select-dem { color: #047857; }
+        .select-evo { color: #4338ca; font-weight: bold; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-8">
-<div class="max-w-[1400px] mx-auto space-y-6">
+<div class="max-w-[1500px] mx-auto space-y-6">
 
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-slate-700">
         <header class="mb-6 border-b pb-4 flex justify-between items-end">
@@ -43,49 +42,51 @@
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 <div class="space-y-2">
                     <label class="block font-semibold text-slate-700">Recherche textuelle</label>
-                    <input type="text" id="searchObj" placeholder="Nom de l'objet..." class="w-full border rounded px-3 py-1.5 outline-none focus:border-blue-500">
-                    <input type="text" id="searchIng" placeholder="Ingrédient requis..." class="w-full border rounded px-3 py-1.5 outline-none focus:border-blue-500">
+                    <input type="text" id="searchObj" placeholder="Nom de l'objet..." class="w-full border rounded px-3 py-1.5 outline-none focus:border-indigo-500">
+                    <input type="text" id="searchIng" placeholder="Ingrédient requis..." class="w-full border rounded px-3 py-1.5 outline-none focus:border-indigo-500">
                 </div>
 
                 <div class="space-y-2">
                     <label class="block font-semibold text-slate-700">Niveau & Valeur</label>
                     <div class="flex space-x-2">
-                        <input type="number" id="minN" placeholder="Niv min" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
-                        <input type="number" id="maxN" placeholder="Niv max" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
+                        <input type="number" id="minN" placeholder="Niv min" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-indigo-500" min="1">
+                        <input type="number" id="maxN" placeholder="Niv max" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-indigo-500" min="1">
                     </div>
                     <div class="flex space-x-2">
-                        <input type="number" id="minV" placeholder="Val min" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
-                        <input type="number" id="maxV" placeholder="Val max" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
+                        <input type="number" id="minV" placeholder="Val min" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-indigo-500" min="1">
+                        <input type="number" id="maxV" placeholder="Val max" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-indigo-500" min="1">
                     </div>
                 </div>
 
                 <div class="space-y-2 xl:col-span-2">
                     <label class="block font-semibold text-slate-700">Filtre de Catégories & Statut</label>
                     <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 items-start sm:items-center">
-                        <select id="cat1" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500 w-full sm:w-1/3"><option value="">-- Catégorie A --</option></select>
+                        <select id="cat1" class="border rounded px-3 py-1.5 outline-none focus:border-indigo-500 w-full sm:w-1/3"><option value="">-- Catégorie A --</option></select>
 
                         <div class="flex items-center space-x-3 bg-white px-3 py-1.5 border rounded">
-                            <label class="flex items-center space-x-1 cursor-pointer"><input type="radio" name="catOp" value="AND" checked class="text-blue-600"><span>ET</span></label>
-                            <label class="flex items-center space-x-1 cursor-pointer"><input type="radio" name="catOp" value="OR" class="text-blue-600"><span>OU</span></label>
+                            <label class="flex items-center space-x-1 cursor-pointer"><input type="radio" name="catOp" value="AND" checked class="text-indigo-600"><span>ET</span></label>
+                            <label class="flex items-center space-x-1 cursor-pointer"><input type="radio" name="catOp" value="OR" class="text-indigo-600"><span>OU</span></label>
                         </div>
 
-                        <select id="cat2" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500 w-full sm:w-1/3"><option value="">-- Catégorie B --</option></select>
+                        <select id="cat2" class="border rounded px-3 py-1.5 outline-none focus:border-indigo-500 w-full sm:w-1/3"><option value="">-- Catégorie B --</option></select>
                     </div>
 
                     <div class="pt-1 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-                        <div class="flex items-center"><label class="mr-2 font-semibold text-slate-700">Temps :</label><select id="filterTime" class="border rounded px-3 py-1.5 outline-none"><option value="">Tous</option><option value="4">4h</option><option value="6">6h</option><option value="8">8h</option></select></div>
-                        <div class="flex items-center"><label class="mr-2 font-semibold text-slate-700">Expert :</label><select id="filterExp" class="border rounded px-3 py-1.5 outline-none"><option value="">Tous</option><option value="Oui">Oui</option><option value="Non">Non</option></select></div>
+                        <div class="flex items-center"><label class="mr-2 font-semibold text-slate-700">Temps :</label><select id="filterTime" class="border rounded px-3 py-1.5 outline-none focus:border-indigo-500"><option value="">Tous</option><option value="4">4h</option><option value="6">6h</option><option value="8">8h</option></select></div>
+                        <div class="flex items-center"><label class="mr-2 font-semibold text-slate-700" title="Éléments rares d'expédition">Rare Expéd. :</label><select id="filterExp" class="border rounded px-3 py-1.5 outline-none focus:border-indigo-500"><option value="">Tous</option><option value="Oui">Oui</option><option value="Non">Non</option></select></div>
                         <div class="flex items-center"><label class="mr-2 font-semibold text-slate-700">Sélection :</label>
-                            <select id="filterSel" class="border rounded px-3 py-1.5 outline-none focus:border-amber-500 bg-white font-semibold">
+                            <select id="filterSel" class="border rounded px-3 py-1.5 outline-none focus:border-indigo-500 bg-white">
                                 <option value="all">Tous</option>
-                                <option value="prio">Priorités (★)</option>
-                                <option value="sec">Secondaires (+)</option>
-                                <option value="checked">Tous cochés</option>
-                                <option value="unchecked">Non cochés</option>
+                                <option value="checked">Sélectionnés (✓)</option>
+                                <option value="unchecked">Non sélectionnés</option>
                             </select>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="mt-4 flex justify-end">
+                <button onclick="resetFilters()" class="text-sm text-slate-500 hover:text-slate-800 underline">Réinitialiser les filtres</button>
             </div>
         </div>
 
@@ -93,15 +94,16 @@
             <table class="w-full text-left border-collapse whitespace-nowrap text-sm">
                 <thead class="bg-slate-200 sticky top-0 shadow-sm z-10">
                 <tr>
-                    <th class="p-2 border-b text-center font-bold text-amber-600 w-8" title="Priorité">★</th>
-                    <th class="p-2 border-b text-center font-bold text-blue-600 w-8 border-r border-slate-300" title="Secondaire">+</th>
+                    <th class="p-2 border-b text-center font-bold w-10 border-r border-slate-300 text-indigo-700">✓</th>
                     <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center w-12" onclick="sortTable('n')">Niv ↕</th>
                     <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('obj')">Objet ↕</th>
-                    <th class="p-2 border-b font-semibold bg-orange-100 text-orange-900 border-x border-slate-300 w-32 text-center" title="Popularité (Ne change pas la semaine)">🔥 Popularité</th>
-                    <th class="p-2 border-b font-semibold bg-emerald-100 text-emerald-900 border-r border-slate-300 w-32 text-center" title="Demande Initiale (Mardi/Mercredi)">📉 Demande In.</th>
+                    <th class="p-2 border-b font-semibold bg-indigo-50 text-indigo-900 border-l border-slate-300 w-28 text-center" title="Tendance d'évolution du marché">📈 Évolution</th>
+                    <th class="p-2 border-b font-semibold bg-orange-100 text-orange-900 border-l border-slate-300 w-32 text-center" title="Popularité (Fixe la semaine)">🔥 Popularité</th>
+                    <th class="p-2 border-b font-semibold bg-emerald-100 text-emerald-900 border-x border-slate-300 w-36 text-center" title="État des stocks du marché">📦 Demande</th>
                     <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center" onclick="sortTable('t')">Temps ↕</th>
                     <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center" onclick="sortTable('val')">Val. Base ↕</th>
                     <th class="p-2 border-b font-semibold">Catégories</th>
+                    <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center" onclick="sortTable('exp')" title="Nécessite des éléments rares d'expédition">Rare Expéd. ↕</th>
                     <th class="p-2 border-b font-semibold w-full">Ingrédients</th>
                 </tr>
                 </thead>
@@ -110,19 +112,29 @@
         </div>
     </div>
 
-    <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-amber-500">
-        <div class="flex flex-col md:flex-row justify-between md:items-center mb-4">
-            <div>
-                <h2 class="text-2xl font-bold text-slate-800">Planificateur Hebdomadaire (Mercredi - Dimanche)</h2>
-                <p class="text-slate-600 text-sm mt-1">L'algorithme simule la baisse de la Demande après chaque journée générée pour maximiser les profits sur la durée.</p>
+    <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-indigo-500">
+        <div class="flex flex-col md:flex-row justify-between md:items-end mb-4">
+            <div class="mb-4 md:mb-0">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Planificateur Hebdomadaire (Mercredi - Dimanche)</h2>
+                <ul class="text-slate-600 text-sm list-disc list-inside space-y-1">
+                    <li><span class="font-semibold text-emerald-600">Chaîne de Combo stricte :</span> Chaque objet (après le 1er) DOIT déclencher le bonus x2.</li>
+                    <li><span class="font-semibold text-indigo-600">Dynamisme :</span> La baisse de la demande est simulée automatiquement de jour en jour.</li>
+                </ul>
+
+                <div class="mt-4 inline-block bg-orange-50 border border-orange-200 rounded p-2">
+                    <label class="flex items-center space-x-2 font-semibold text-orange-800 cursor-pointer">
+                        <input type="checkbox" id="allowRareExp" class="custom-checkbox" checked>
+                        <span>Autoriser l'utilisation des éléments rares d'expédition dans les plannings</span>
+                    </label>
+                </div>
             </div>
-            <button onclick="generateWeekly()" class="mt-4 md:mt-0 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-8 rounded shadow-lg transition-transform transform hover:scale-105">
+
+            <button onclick="generateWeekly()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded shadow-lg transition-transform transform hover:scale-105 h-fit">
                 💾 Sauvegarder & Générer la Semaine
             </button>
         </div>
 
         <div id="solverResults" class="hidden mt-6">
-
             <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-center mb-8 shadow-sm">
                 <h3 class="text-emerald-800 font-bold text-lg uppercase tracking-wider">Revenu Estimé de la Semaine</h3>
                 <div class="text-4xl font-black text-emerald-600 mt-2" id="weekTotalGain">0 <span class="text-xl">Assignats</span></div>
@@ -223,44 +235,45 @@
 
     // LOGIQUE DU MARCHÉ
     const POP_MULT = { 'Faible': 0.8, 'Moyenne': 1.0, 'Forte': 1.2, 'Très Forte': 1.4 };
-    const DEM_TIERS = ['Pléthorique', 'Surabondante', 'Normale', 'Insuffisante', 'Pénurie']; // 0 = Pire, 4 = Meilleur
+    const DEM_TIERS = ['Excédentaire', 'En surplus', 'Suffisante', 'Insuffisante', 'Introuvable'];
     const DEM_MULT = [0.6, 0.8, 1.0, 1.3, 1.6];
 
     const data = rawData.map((item, index) => ({ ...item, id: index }));
     let currentData = [...data];
+    let selectedIds = new Set();
+    let marketData = {};
 
-    let selectedPrioIds = new Set();
-    let selectedSecIds = new Set();
-    let marketData = {}; // { id: { pop: 'Moyenne', dem: 2 } }
-
-    // Initialisation du marché par défaut
-    data.forEach(d => marketData[d.id] = { pop: 'Moyenne', dem: 2 });
+    // Initialisation
+    data.forEach(d => marketData[d.id] = { pop: 'Moyenne', dem: 2, evo: '-' });
 
     // GESTION SAUVEGARDE LOCALE
     function saveToLocalStorage() {
         const saveObj = {
-            prio: Array.from(selectedPrioIds),
-            sec: Array.from(selectedSecIds),
+            sel: Array.from(selectedIds),
             market: marketData
         };
-        localStorage.setItem('fabriqueSave', JSON.stringify(saveObj));
+        localStorage.setItem('fabriqueSave3', JSON.stringify(saveObj));
     }
 
     function loadFromLocalStorage() {
-        const saved = localStorage.getItem('fabriqueSave');
+        const saved = localStorage.getItem('fabriqueSave3');
         if(saved) {
             try {
                 const parsed = JSON.parse(saved);
-                selectedPrioIds = new Set(parsed.prio || []);
-                selectedSecIds = new Set(parsed.sec || []);
-                if(parsed.market) marketData = parsed.market;
-            } catch(e) { console.error("Erreur de lecture de la sauvegarde", e); }
+                selectedIds = new Set(parsed.sel || []);
+                if(parsed.market) {
+                    for(let id in parsed.market) {
+                        marketData[id] = parsed.market[id];
+                        if(!marketData[id].evo) marketData[id].evo = '-';
+                    }
+                }
+            } catch(e) { console.error("Erreur lecture", e); }
         }
     }
 
     function clearLocalStorage() {
         if(confirm("Voulez-vous vraiment effacer toutes vos sélections et réglages de marché ?")) {
-            localStorage.removeItem('fabriqueSave');
+            localStorage.removeItem('fabriqueSave3');
             location.reload();
         }
     }
@@ -284,67 +297,65 @@
     populateSelect(inputs[7]);
     populateSelect(inputs[8]);
 
-    window.togglePrio = function(id) {
-        if (selectedPrioIds.has(id)) selectedPrioIds.delete(id);
-        else { selectedPrioIds.add(id); selectedSecIds.delete(id); }
-        applyFilters();
-    };
-
-    window.toggleSec = function(id) {
-        if (selectedSecIds.has(id)) selectedSecIds.delete(id);
-        else { selectedSecIds.add(id); selectedPrioIds.delete(id); }
+    window.toggleSelection = function(id) {
+        if (selectedIds.has(id)) selectedIds.delete(id);
+        else selectedIds.add(id);
         applyFilters();
     };
 
     window.updateMarket = function(id, type, val) {
         if(type === 'pop') marketData[id].pop = val;
         if(type === 'dem') marketData[id].dem = parseInt(val);
+        if(type === 'evo') marketData[id].evo = val;
     };
 
     function render(filteredData) {
         tableBody.innerHTML = filteredData.map(d => {
-            let rowBg = '';
-            if (selectedPrioIds.has(d.id)) rowBg = 'bg-amber-50';
-            else if (selectedSecIds.has(d.id)) rowBg = 'bg-blue-50';
-
+            let rowBg = selectedIds.has(d.id) ? 'bg-indigo-50/50' : '';
             let m = marketData[d.id];
 
             return `
                 <tr class="hover:bg-slate-100 transition-colors ${rowBg}">
-                    <td class="p-2 border-b text-center border-r border-white">
-                        <input type="checkbox" class="custom-checkbox cb-prio" ${selectedPrioIds.has(d.id) ? 'checked' : ''} onchange="togglePrio(${d.id})">
+                    <td class="p-1 border-b text-center border-r border-slate-200">
+                        <input type="checkbox" class="custom-checkbox" ${selectedIds.has(d.id) ? 'checked' : ''} onchange="toggleSelection(${d.id})">
                     </td>
-                    <td class="p-2 border-b text-center border-r border-slate-200">
-                        <input type="checkbox" class="custom-checkbox cb-sec" ${selectedSecIds.has(d.id) ? 'checked' : ''} onchange="toggleSec(${d.id})">
-                    </td>
-                    <td class="p-2 border-b text-center font-mono">${d.n}</td>
-                    <td class="p-2 border-b font-medium text-slate-900">${d.obj}</td>
+                    <td class="p-1 border-b text-center font-mono text-xs">${d.n}</td>
+                    <td class="p-1 border-b font-medium text-slate-900">${d.obj}</td>
 
-                    <td class="p-2 border-b border-x border-slate-200 text-center bg-orange-50/50">
+                    <td class="p-1 border-b border-l border-slate-200 text-center bg-indigo-50/50">
+                        <select class="select-market select-evo" onchange="updateMarket(${d.id}, 'evo', this.value)">
+                            <option value="↑" ${m.evo==='↑'?'selected':''}>↑ Hausse</option>
+                            <option value="-" ${m.evo==='-'?'selected':''}>- Stable</option>
+                            <option value="↓" ${m.evo==='↓'?'selected':''}>↓ Baisse</option>
+                        </select>
+                    </td>
+
+                    <td class="p-1 border-b text-center bg-orange-50/50">
                         <select class="select-market select-pop" onchange="updateMarket(${d.id}, 'pop', this.value)">
                             <option value="Faible" ${m.pop==='Faible'?'selected':''}>Faible (x0.8)</option>
                             <option value="Moyenne" ${m.pop==='Moyenne'?'selected':''}>Moyenne (x1.0)</option>
                             <option value="Forte" ${m.pop==='Forte'?'selected':''}>Forte (x1.2)</option>
-                            <option value="Très Forte" ${m.pop==='Très Forte'?'selected':''}>Très Forte (x1.4)</option>
+                            <option value="Très Forte" ${m.pop==='Très Forte'?'selected':''}>T. Forte (x1.4)</option>
                         </select>
                     </td>
-                    <td class="p-2 border-b border-r border-slate-200 text-center bg-emerald-50/50">
+                    <td class="p-1 border-b border-r border-slate-200 text-center bg-emerald-50/50">
                         <select class="select-market select-dem" onchange="updateMarket(${d.id}, 'dem', this.value)">
-                            <option value="0" ${m.dem===0?'selected':''}>Pléthorique (x0.6)</option>
-                            <option value="1" ${m.dem===1?'selected':''}>Surabondante (x0.8)</option>
-                            <option value="2" ${m.dem===2?'selected':''}>Normale (x1.0)</option>
+                            <option value="0" ${m.dem===0?'selected':''}>Excédentaire (x0.6)</option>
+                            <option value="1" ${m.dem===1?'selected':''}>En surplus (x0.8)</option>
+                            <option value="2" ${m.dem===2?'selected':''}>Suffisante (x1.0)</option>
                             <option value="3" ${m.dem===3?'selected':''}>Insuffisante (x1.3)</option>
-                            <option value="4" ${m.dem===4?'selected':''}>Pénurie (x1.6)</option>
+                            <option value="4" ${m.dem===4?'selected':''}>Introuvable (x1.6)</option>
                         </select>
                     </td>
 
-                    <td class="p-2 border-b text-center font-bold text-indigo-600">${d.t}h</td>
-                    <td class="p-2 border-b text-slate-600 font-mono text-center">${d.val}</td>
-                    <td class="p-2 border-b text-xs">
+                    <td class="p-1 border-b text-center font-bold text-indigo-600">${d.t}h</td>
+                    <td class="p-1 border-b text-slate-600 font-mono text-center">${d.val}</td>
+                    <td class="p-1 border-b text-xs">
                         <span class="inline-block bg-slate-200 px-1 py-0.5 rounded mb-1">${d.c1}</span>
                         ${d.c2 ? `<span class="inline-block bg-slate-100 px-1 py-0.5 rounded italic border">${d.c2}</span>` : ''}
                     </td>
-                    <td class="p-2 border-b text-[10px] text-slate-500 whitespace-normal min-w-[150px] leading-tight">${d.ing.split(' | ').join('<br>')}</td>
+                    <td class="p-1 border-b text-center"><span class="${d.exp === 'Oui' ? 'text-orange-600 font-bold bg-orange-100 px-2 py-1 rounded' : 'text-slate-400'}">${d.exp}</span></td>
+                    <td class="p-1 border-b text-[10px] text-slate-500 whitespace-normal min-w-[150px] leading-tight">${d.ing.split(' | ').join('<br>')}</td>
                 </tr>
             `}).join('');
         countSpan.textContent = filteredData.length;
@@ -367,10 +378,8 @@
         const op = document.querySelector('input[name="catOp"]:checked').value;
 
         currentData = data.filter(d => {
-            if (sel === 'prio' && !selectedPrioIds.has(d.id)) return false;
-            if (sel === 'sec' && !selectedSecIds.has(d.id)) return false;
-            if (sel === 'checked' && !selectedPrioIds.has(d.id) && !selectedSecIds.has(d.id)) return false;
-            if (sel === 'unchecked' && (selectedPrioIds.has(d.id) || selectedSecIds.has(d.id))) return false;
+            if (sel === 'checked' && !selectedIds.has(d.id)) return false;
+            if (sel === 'unchecked' && selectedIds.has(d.id)) return false;
 
             if (sObj && !d.obj.toLowerCase().includes(sObj)) return false;
             if (sIng && !d.ing.toLowerCase().includes(sIng)) return false;
@@ -410,28 +419,30 @@
         let m = marketData[item.id];
         let popMult = POP_MULT[m.pop];
         let demMult = DEM_MULT[demandLevel];
-        // Multiplication avec troncature (similaire au jeu)
         return Math.floor(item.val * popMult * demMult);
     }
 
     function generateWeekly() {
         saveToLocalStorage();
 
-        const prioItems = data.filter(d => selectedPrioIds.has(d.id));
-        const secItems = data.filter(d => selectedSecIds.has(d.id));
-        const allSelectedItems = [...prioItems, ...secItems];
+        const allowRare = document.getElementById('allowRareExp').checked;
+        const selectedItems = data.filter(d => selectedIds.has(d.id) && (allowRare || d.exp === 'Non'));
 
-        if (allSelectedItems.length === 0) {
-            alert("Veuillez sélectionner au moins un objet en priorité ou en secondaire.");
+        if (selectedItems.length === 0) {
+            if(!allowRare && Array.from(selectedIds).length > 0) {
+                alert("Tous les objets sélectionnés requièrent des éléments rares d'expédition. Cochez l'option pour les autoriser.");
+            } else {
+                alert("Veuillez sélectionner au moins un objet dans le tableau.");
+            }
             return;
         }
 
         document.getElementById('solverResults').classList.remove('hidden');
         const grid = document.getElementById('weeklyGrid');
-        grid.innerHTML = '<div class="text-center p-8 text-amber-600 font-bold animate-pulse">Calcul de la semaine en cours...</div>';
+        grid.innerHTML = '<div class="text-center p-8 text-indigo-600 font-bold animate-pulse">Calcul de la semaine en cours...</div>';
 
         setTimeout(() => {
-            let dynamicDemands = {}; // Niveau de demande (0 à 4)
+            let dynamicDemands = {};
             data.forEach(d => dynamicDemands[d.id] = marketData[d.id].dem);
 
             const weekDays = ['Jour 1 (Mercredi)', 'Jour 2 (Jeudi)', 'Jour 3 (Vendredi)', 'Jour 4 (Samedi)', 'Jour 5 (Dimanche)'];
@@ -441,21 +452,13 @@
             for (let dayIndex = 0; dayIndex < 5; dayIndex++) {
                 let bestSchedulesBySet = new Map();
 
-                // Trouver tous les combos possibles pour ce jour précis
-                dfsSchedulesDay([], 0, 0, allSelectedItems, new Set(), bestSchedulesBySet, dynamicDemands);
-
+                dfsSchedulesDay([], 0, 0, selectedItems, new Set(), bestSchedulesBySet, dynamicDemands);
                 let daySchedules = Array.from(bestSchedulesBySet.values());
-
-                // Trouver le Top 3 disjoint pour les 3 fabriques
                 let top3 = findTopDisjointSchedules(daySchedules);
 
-                // Sauvegarder pour le rendu
                 weeklyPlan.push({ dayName: weekDays[dayIndex], schedules: top3 });
 
-                // MISE A JOUR DU MARCHE POUR LE JOUR SUIVANT
-                // Chaque objet crafté voit sa demande chuter.
-                // Dans le jeu, crafter un planning de 24h sur 3 fabriques fait lourdement chuter.
-                // On simule une baisse de -1 niveau pour chaque objet utilisé.
+                // Baisse de la demande pour le jour suivant
                 top3.forEach(sched => {
                     sched.path.forEach(step => {
                         if (dynamicDemands[step.item.id] > 0) {
@@ -505,18 +508,18 @@
             const rem = 24 - currentTime;
             if (rem === 0 || rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0) {
                 const signature = Array.from(usedIds).sort((a, b) => a - b).join('-');
-                let pCount = currentSeq.filter(s => selectedPrioIds.has(s.item.id)).length;
-
                 let existing = bestSchedulesBySet.get(signature);
-                let shouldUpdate = !existing || (pCount > existing.prioCount) || (pCount === existing.prioCount && currentGain > existing.gain);
+
+                // Tri primaire par Efficacité, puis Gain, puis Temps
+                let eff = currentGain / currentTime;
+                let shouldUpdate = !existing || (eff > existing.eff) || (eff === existing.eff && currentGain > existing.gain);
 
                 if (shouldUpdate) {
                     bestSchedulesBySet.set(signature, {
                         path: currentSeq.map(s => ({ item: s.item, combo: s.combo, stepGain: s.stepGain })),
                         gain: currentGain,
                         time: currentTime,
-                        eff: currentGain / currentTime,
-                        prioCount: pCount
+                        eff: eff
                     });
                 }
             }
@@ -525,7 +528,6 @@
 
     function findTopDisjointSchedules(allSchedules, maxCount = 3) {
         let sorted = [...allSchedules].sort((a, b) => {
-            if (b.prioCount !== a.prioCount) return b.prioCount - a.prioCount;
             if (b.eff !== a.eff) return b.eff - a.eff;
             if (b.time !== a.time) return b.time - a.time;
             return b.gain - a.gain;
@@ -553,21 +555,18 @@
                 return `
                         <div class="bg-white rounded-lg border border-slate-200 p-4 shadow-sm">
                             <h3 class="font-bold text-lg text-slate-800 border-b pb-2 mb-3">${day.dayName}</h3>
-                            <div class="text-slate-500 italic text-center py-4">Pas assez d'objets sélectionnés pour générer une journée valide.</div>
+                            <div class="text-slate-500 italic text-center py-4">Pas de combinaison optimale trouvée avec les paramètres actuels.</div>
                         </div>
                     `;
             }
 
             let dayHtml = day.schedules.map((s, idx) => {
                 let htmlPath = s.path.map((step, i) => {
-                    let isPrio = selectedPrioIds.has(step.item.id);
-                    let prioStar = isPrio ? `<span class="text-amber-500 font-black mr-1 text-[10px]">★</span>` : '';
-                    let color = step.combo ? 'bg-emerald-100 border-emerald-300 text-emerald-800' : 'bg-white border-slate-200 text-slate-700';
+                    let color = step.combo ? 'bg-emerald-100 border-emerald-300 text-emerald-800 font-semibold' : 'bg-white border-slate-200 text-slate-700';
                     let arrow = i < s.path.length - 1 ? `<span class="mx-1 text-slate-400 font-bold text-xs">➔</span>` : '';
-
                     return `<div class="inline-flex items-center mt-1">
-                                    <span class="border px-1.5 py-0.5 rounded text-xs font-semibold whitespace-nowrap ${color} flex items-center shadow-sm">
-                                        ${prioStar}${step.item.obj}
+                                    <span class="border px-1.5 py-0.5 rounded text-xs whitespace-nowrap ${color} shadow-sm">
+                                        ${step.item.obj}
                                     </span>${arrow}
                                 </div>`;
                 }).join('');
