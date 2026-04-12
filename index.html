@@ -25,7 +25,7 @@
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-slate-700">
         <header class="mb-6 border-b pb-4 flex flex-col md:flex-row justify-between md:items-end gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v5.2</span></h1>
+                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v5.3</span></h1>
                 <p class="text-slate-500">Moteur Économique Pur (Règle des 8 & Faisceau Rapide)</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
@@ -117,7 +117,9 @@
                     <th class="p-2 border-b font-semibold bg-emerald-100 text-emerald-900 border-x border-slate-300 w-36 text-center">📦 Demande</th>
                     <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center" onclick="sortTable('t')">Temps ↕</th>
                     <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center" onclick="sortTable('val')">Val. Base ↕</th>
+                    <th class="p-2 border-b font-semibold">Catégories</th>
                     <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center" onclick="sortTable('exp')">Rare Expéd. ↕</th>
+                    <th class="p-2 border-b font-semibold w-full">Ingrédients</th>
                 </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -414,7 +416,12 @@
                     </td>
                     <td class="p-1 border-b text-center font-bold text-slate-700">${d.t}h</td>
                     <td class="p-1 border-b text-slate-600 font-mono text-center">${d.val}</td>
+                    <td class="p-1 border-b text-xs">
+                        <span class="inline-block bg-slate-200 px-1 py-0.5 rounded mb-1">${d.c1}</span>
+                        ${d.c2 ? `<span class="inline-block bg-slate-100 px-1 py-0.5 rounded italic border">${d.c2}</span>` : ''}
+                    </td>
                     <td class="p-1 border-b text-center"><span class="${d.exp === 'Oui' ? 'text-orange-600 font-bold bg-orange-100 px-2 py-1 rounded' : 'text-slate-400'}">${d.exp}</span></td>
+                    <td class="p-1 border-b text-[10px] text-slate-500 whitespace-normal min-w-[150px] leading-tight">${d.ing.split(' | ').join('<br>')}</td>
                 </tr>
             `}).join('');
         countSpan.textContent = filteredData.length;
@@ -475,8 +482,6 @@
 
     inputs.forEach(input => { if(input) { input.addEventListener('input', applyFilters); input.addEventListener('change', applyFilters); } });
     radios.forEach(radio => radio.addEventListener('change', applyFilters));
-
-    initMarketData();
 
     // ==========================================
     // V5: SUPER BEAM SEARCH OPTIMISÉ
@@ -655,18 +660,16 @@
                 return { dayName: weekDays[index], schedule: dayData };
             });
 
-            renderValidityDate(); // Affichage de la date de la semaine en cours
+            renderValidityDate();
             renderWeeklyV5(finalPlan, bestWeek.totalGain);
             renderShoppingList(finalPlan);
         }, 50);
     }
 
-    // Fonction pour afficher la période de validité de la semaine de l'Île
     function renderValidityDate() {
         const now = new Date();
-        const dayOfWeek = now.getDay(); // 0 = Dimanche, 1 = Lundi, 2 = Mardi...
+        const dayOfWeek = now.getDay();
 
-        // Calculer la différence pour revenir au mardi le plus récent
         const diffToTuesday = (dayOfWeek >= 2) ? (dayOfWeek - 2) : (dayOfWeek + 5);
 
         const lastTuesday = new Date(now);
@@ -679,7 +682,7 @@
         const strStart = lastTuesday.toLocaleDateString('fr-FR', options);
         const strEnd = nextMonday.toLocaleDateString('fr-FR', options);
 
-        document.getElementById('validityDateBox').innerHTML = `ℹ️ Les données et ce planning sont valables pour la semaine du <strong>${strStart}</strong> au <strong>${strEnd}</strong>.`;
+        document.getElementById('validityDateBox').innerHTML = `ℹ️ Les données de marché et ce planning sont valables pour la semaine du <strong>${strStart}</strong> au <strong>${strEnd}</strong>.`;
     }
 
     function renderWeeklyV5(weeklyPlan, totalGain) {
@@ -733,14 +736,11 @@
         }).join('');
     }
 
-    // ==========================================
-    // LISTE DE COURSES AVEC DÉTAIL PAR JOUR
-    // ==========================================
     function renderShoppingList(finalPlan) {
         let materials = {};
 
         finalPlan.forEach(day => {
-            let dayName = day.dayName; // Ex: "Jour 1"
+            let dayName = day.dayName;
 
             day.schedule.path.forEach(step => {
                 let item = step.item;
@@ -767,7 +767,6 @@
             let mat = materials[name];
 
             if (RARE_MATS.includes(name)) {
-                // Création de la petite ligne de détail sous le total
                 let details = Object.entries(mat.byDay)
                     .filter(([_, q]) => q > 0)
                     .map(([d, q]) => `${d}: <span class="font-semibold">x${q}</span>`)
