@@ -13,6 +13,8 @@
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+        .custom-checkbox { width: 1.25rem; height: 1.25rem; cursor: pointer; accent-color: #4f46e5; }
+
         .select-market { font-size: 0.75rem; padding: 0.1rem 0.25rem; border-radius: 0.25rem; border: 1px solid #cbd5e1; outline: none; background: white; cursor: pointer; width: 100%; text-align: center; }
         .select-pop { color: #b45309; }
         .select-dem { color: #047857; }
@@ -30,16 +32,20 @@
             </div>
             <div class="flex flex-wrap items-center gap-3">
 
+                <div class="flex items-center space-x-2 bg-emerald-50 px-3 py-1.5 rounded border border-emerald-200 shadow-sm" title="Dernière détection d'un nouveau fichier market_data.json">
+                    <span class="text-emerald-600 text-xl">📡</span>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-emerald-600 font-bold uppercase leading-none">Données du serveur</span>
+                        <span id="lastUpdateText" class="text-xs font-bold text-emerald-800 leading-tight">Vérification...</span>
+                    </div>
+                </div>
+
                 <div class="flex items-center space-x-2 bg-indigo-50 px-3 py-1.5 rounded border border-indigo-200 shadow-sm">
                     <label class="font-bold text-indigo-800 text-sm">Votre Rang d'Île :</label>
                     <input type="number" id="userRank" min="1" max="20" value="20" class="w-16 border rounded px-2 py-1 outline-none font-bold text-indigo-700 text-center bg-white" onchange="saveRank(); applyFilters();">
                 </div>
 
-                <button onclick="fetchWeeklyData()" id="apiBtn" class="text-sm bg-indigo-600 text-white px-4 py-2 rounded shadow-sm hover:bg-indigo-700 font-bold transition flex items-center">
-                    <span class="mr-2">📥</span> Charger le JSON (Mardi)
-                </button>
-
-                <button onclick="clearLocalStorage()" class="text-xs bg-red-100 text-red-600 px-3 py-2 rounded hover:bg-red-200 font-semibold transition" title="Remet tout le marché à l'état Moyen/Suffisant">Vider Marché</button>
+                <button onclick="clearLocalStorage()" class="text-xs bg-red-100 text-red-600 px-3 py-2 rounded hover:bg-red-200 font-semibold transition" title="Remet tout le marché à l'état Moyen/Suffisant et vide le cache">Vider Marché</button>
                 <span class="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-2 rounded border border-blue-200">
                         <span id="count">0</span> recette(s)
                     </span>
@@ -92,12 +98,6 @@
         </div>
 
         <div class="table-container border border-slate-200 rounded-md relative">
-            <div id="apiLoader" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
-                <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600 mb-4"></div>
-                <p class="text-indigo-800 font-bold text-lg">Récupération des données du marché...</p>
-                <p class="text-sm text-slate-500">Lecture de market_data.json en cours.</p>
-            </div>
-
             <table class="w-full text-left border-collapse whitespace-nowrap text-sm">
                 <thead class="bg-slate-200 sticky top-0 shadow-sm z-10">
                 <tr>
@@ -213,7 +213,7 @@
         { lvl: 15, obj: "Plat en laiton insulaire", t: 4, val: 36, c1: "Article du quotidien", c2: "En métal", exp: "Non", ing: "2 x Minerai de cuivre jaune insulaire | 2 x Minerai de cuivre insulaire" },
         { lvl: 12, obj: "Poêle manufacturé", t: 6, val: 54, c1: "Meuble", c2: "En métal", exp: "Non", ing: "2 x Charbon insulaire | 3 x Minerai de fer insulaire | 1 x Granite insulaire" },
         { lvl: 5, obj: "Popoto doux manufacturé", t: 6, val: 72, c1: "Pâtisserie", c2: "", exp: "Non", ing: "2 x Popoto exotique | 1 x Lait d'animal d'élevage | 3 x Sève insulaire" },
-        { lvl: 1, obj: "Potion manufacturée", t: 4, val: 28, c1: "Concoction", c2: "", exp: "Non", ing: "2 x Palme insulaire | 2 x Feuille d'arbuste insulaire" },
+        { lvl: 4, obj: "Potion manufacturée", t: 4, val: 28, c1: "Concoction", c2: "", exp: "Non", ing: "2 x Palme insulaire | 2 x Feuille d'arbuste insulaire" },
         { lvl: 3, obj: "Poudre manufacturée", t: 4, val: 28, c1: "Concoction", c2: "En céramique", exp: "Non", ing: "2 x Sable insulaire | 1 x Pierre calcaire insulaire | 1 x Feuille d'arbuste insulaire" },
         { lvl: 7, obj: "Radis mariné manufacturé", t: 8, val: 104, c1: "À longue conservation", c2: "", exp: "Non", ing: "4 x Radis exotique | 2 x Pomme insulaire | 2 x Canne à sucre insulaire" },
         { lvl: 5, obj: "Rapière en grenat manufacturée", t: 8, val: 136, c1: "Arme", c2: "En céramique", exp: "Oui", ing: "2 x Grenat brut insulaire | 3 x Minerai de cuivre insulaire | 3 x Cassitérite insulaire" },
@@ -248,7 +248,7 @@
     let currentData = [...data];
     let marketData = {};
 
-    // Initialisation
+    // Initialisation par défaut
     data.forEach(d => marketData[d.id] = { pop: 'Moyenne', dem: 2, evo: '-' });
 
     // GESTION SAUVEGARDE LOCALE
@@ -279,60 +279,75 @@
     }
 
     function clearLocalStorage() {
-        if(confirm("Voulez-vous vraiment remettre tout le marché à l'état par défaut (Moyen/Suffisant) ?")) {
+        if(confirm("Voulez-vous vraiment remettre tout le marché à l'état par défaut (Moyen/Suffisant) ? L'historique local sera effacé.")) {
             localStorage.removeItem('fabriqueSaveFinal');
+            localStorage.removeItem('lastRawJson'); // On clear aussi le cache du JSON
             location.reload();
         }
     }
 
-    loadFromLocalStorage();
-
-    // CHARGEMENT DU FICHIER JSON EXTERNE (LE VRAI)
-    async function fetchWeeklyData() {
-        const btn = document.getElementById('apiBtn');
-        const loader = document.getElementById('apiLoader');
-
-        loader.classList.remove('hidden');
-        btn.innerHTML = '<span class="mr-2 animate-spin">⏳</span> Chargement...';
-        btn.disabled = true;
+    // ==========================================
+    // AUTO-SYNCHRONISATION AU CHARGEMENT (Nouveauté)
+    // ==========================================
+    async function initMarketData() {
+        loadFromLocalStorage(); // Charge d'abord les éventuelles modifs manuelles
 
         try {
-            // Lecture du fichier sur votre propre serveur GitHub Pages
-            const response = await fetch('market_data.json');
+            // On fetch en désactivant le cache pour toujours voir si un nouveau fichier est sur GitHub
+            const response = await fetch('market_data.json', { cache: 'no-store' });
 
-            if (!response.ok) {
-                throw new Error("Le fichier market_data.json est introuvable. Assurez-vous de l'avoir bien créé sur votre GitHub.");
-            }
+            if (response.ok) {
+                const newRawText = await response.text();
+                const oldRawText = localStorage.getItem('lastRawJson');
 
-            const weeklyData = await response.json();
-
-            // Application des données
-            data.forEach(item => {
-                const apiItem = weeklyData[item.obj];
-                if(apiItem) {
-                    marketData[item.id].pop = apiItem.pop;
-                    marketData[item.id].dem = apiItem.dem;
-                    marketData[item.id].evo = apiItem.evo;
+                // Tentative de récupération de la date de modif depuis le serveur GitHub
+                let lastMod = response.headers.get('Last-Modified');
+                let dateStr = "Récemment";
+                if(lastMod) {
+                    const d = new Date(lastMod);
+                    dateStr = d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
                 } else {
-                    marketData[item.id].pop = "Moyenne";
-                    marketData[item.id].dem = 2;
-                    marketData[item.id].evo = "-";
+                    // Fallback si l'hébergeur bloque le header Last-Modified
+                    const d = new Date();
+                    dateStr = d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
                 }
-            });
 
-            saveToLocalStorage();
-            applyFilters();
+                if (newRawText !== oldRawText) {
+                    // NOUVEAU FICHIER DÉTECTÉ (C'est un nouveau mardi !)
+                    // On écrase les modifs manuelles avec la nouvelle vérité du serveur
+                    const weeklyData = JSON.parse(newRawText);
+                    data.forEach(item => {
+                        const apiItem = weeklyData[item.obj];
+                        if(apiItem) {
+                            marketData[item.id].pop = apiItem.pop;
+                            marketData[item.id].dem = apiItem.dem;
+                            marketData[item.id].evo = apiItem.evo;
+                        } else {
+                            marketData[item.id].pop = "Moyenne";
+                            marketData[item.id].dem = 2;
+                            marketData[item.id].evo = "-";
+                        }
+                    });
 
-            alert("✅ Marché mis à jour avec succès depuis 'market_data.json' !");
-
+                    // On met à jour nos "points de repère" pour ne pas écraser la prochaine fois qu'on refresh
+                    localStorage.setItem('lastRawJson', newRawText);
+                    localStorage.setItem('lastUpdateDate', dateStr);
+                    document.getElementById('lastUpdateText').textContent = dateStr;
+                    saveToLocalStorage();
+                } else {
+                    // C'est la même semaine ! On ne fait rien, on garde les modifs manuelles chargées au début.
+                    document.getElementById('lastUpdateText').textContent = localStorage.getItem('lastUpdateDate') || dateStr;
+                }
+            } else {
+                document.getElementById('lastUpdateText').textContent = "Fichier non trouvé";
+            }
         } catch (error) {
-            console.error("Erreur de lecture du JSON:", error);
-            alert("❌ " + error.message);
-        } finally {
-            loader.classList.add('hidden');
-            btn.innerHTML = '<span class="mr-2">📥</span> Charger le JSON (Mardi)';
-            btn.disabled = false;
+            console.log("Lecture du JSON distant ignorée ou impossible.", error);
+            document.getElementById('lastUpdateText').textContent = "Mode Local (Aucun fichier)";
         }
+
+        // On lance l'affichage une fois tout calculé
+        applyFilters();
     }
 
     // GESTION DOM
@@ -356,7 +371,7 @@
         if(type === 'pop') marketData[id].pop = val;
         if(type === 'dem') marketData[id].dem = parseInt(val);
         if(type === 'evo') marketData[id].evo = val;
-        saveToLocalStorage(); // On sauvegarde aussi les modifications manuelles
+        saveToLocalStorage(); // On sauvegarde aussi les modifications manuelles de l'utilisateur
     };
 
     function render(filteredData) {
@@ -458,7 +473,9 @@
 
     inputs.forEach(input => { input.addEventListener('input', applyFilters); input.addEventListener('change', applyFilters); });
     radios.forEach(radio => radio.addEventListener('change', applyFilters));
-    render(currentData);
+
+    // LANCEMENT DE LA LOGIQUE AU DEMARRAGE
+    initMarketData();
 
     // ==========================================
     // SOLVER HEBDOMADAIRE OPTIMISÉ
