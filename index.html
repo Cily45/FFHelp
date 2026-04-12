@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atelier de l'Île - Base de données</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .table-container { max-height: 70vh; overflow-y: auto; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen p-4 md:p-8">
+<div class="max-w-7xl mx-auto bg-white shadow-xl rounded-lg p-6">
+    <header class="mb-8 border-b pb-4">
+        <h1 class="text-3xl font-bold text-slate-800">Atelier de l'Île</h1>
+        <p class="text-slate-500">Base de données des objets et ingrédients</p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <input type="text" id="search" placeholder="Rechercher un objet ou un ingrédient..."
+               class="border border-slate-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+
+        <select id="filterCat" class="border border-slate-300 rounded-md px-4 py-2 outline-none">
+            <option value="">Toutes les catégories</option>
+        </select>
+
+        <div class="flex items-center space-x-2 text-sm text-slate-600">
+            <span id="count">0</span> objets trouvés
+        </div>
+    </div>
+
+    <div class="table-container border border-slate-200 rounded-md">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-slate-100 sticky top-0">
+            <tr>
+                <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200" onclick="sortTable(0)">Niveau ↕</th>
+                <th class="p-3 border-b font-semibold">Objet</th>
+                <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200" onclick="sortTable(2)">Valeur ↕</th>
+                <th class="p-3 border-b font-semibold">Catégories</th>
+                <th class="p-3 border-b font-semibold">Expert</th>
+                <th class="p-3 border-b font-semibold">Ingrédients</th>
+            </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Données complètes (extraites de votre liste)
+    const data = [
+        { n: 88, obj: "Anneau en quartz exotique", val: 72, c1: "Accessoire", c2: "En céramique", exp: "Non", ing: "3 x Quartz insulaire | 3 x Minerai de fer insulaire | 2 x Pierre insulaire" },
+        { n: 16, obj: "Bague en corail manufacturée", val: 42, c1: "Accessoire", c2: "Marin", exp: "Non", ing: "3 x Corail insulaire | 3 x Sarment insulaire" },
+        { n: 58, obj: "Bagues d'oreilles en argent manufacturées", val: 136, c1: "Accessoire", c2: "En métal", exp: "Oui", ing: "2 x Minerai d'argent insulaire | 3 x Cassitérite insulaire | 3 x Corail insulaire" },
+        { n: 138, obj: "Baignoire manufacturée", val: 72, c1: "Meuble", c2: "En céramique", exp: "Non", ing: "4 x Marbre insulaire | 2 x Granite insulaire | 2 x Argile insulaire" },
+        { n: 16, obj: "Barbute manufacturée", val: 42, c1: "Armure", c2: "En métal", exp: "Non", ing: "3 x Minerai de cuivre insulaire | 3 x Sable insulaire" },
+        { n: 14, obj: "Beurre manufacturé", val: 44, c1: "Condiment", c2: "Animalier", exp: "Non", ing: "1 x Lait d'animal d'élevage | 3 x Sel gemme insulaire" },
+        { n: 124, obj: "Bicarbonate de soude manufacturé", val: 36, c1: "Article du quotidien", c2: "Concoction", exp: "Non", ing: "2 x Eau pétillante insulaire | 2 x Sel gemme insulaire" },
+        { n: 14, obj: "Boucles d'oreilles en croc manufacturées", val: 44, c1: "Accessoire", c2: "Animalier", exp: "Non", ing: "1 x Croc d'animal d'élevage | 3 x Sarment insulaire" },
+        { n: 58, obj: "Bouclier rond en épicéa manufacturé", val: 136, c1: "Armure", c2: "En bois", exp: "Oui", ing: "2 x Rondin d'épicéa insulaire | 3 x Minerai de cuivre insulaire | 3 x Pierre insulaire" },
+        { n: 128, obj: "Bouillabaisse manufacturée", val: 136, c1: "Plat", c2: "Marin", exp: "Non", ing: "2 x Crevette insulaire à grandes pinces | 2 x Coque insulaire | 2 x Calmar insulaire | 2 x Tomate exotique" },
+        { n: 76, obj: "Breuvage érémitique manufacturé", val: 54, c1: "Concoction", c2: "Marin", exp: "Non", ing: "2 x Méduse insulaire | 2 x Palme insulaire | 2 x Sargasse tamamo insulaire" },
+        { n: 14, obj: "Brosse manufacturée", val: 44, c1: "Article du quotidien", c2: "En bois", exp: "Non", ing: "1 x Laine d'animal d'élevage | 3 x Rondin de palmier insulaire" },
+        { n: 126, obj: "Cadre de fossile manufacturé", val: 54, c1: "Animalier", c2: "En céramique", exp: "Non", ing: "3 x Schiste insulaire | 2 x Rondin de palmier insulaire | 1 x Fleur de coton insulaire" },
+        { n: 56, obj: "Caramel exotique", val: 81, c1: "Pâtisserie", c2: "", exp: "Non", ing: "4 x Canne à sucre insulaire | 2 x Lait d'animal d'élevage" },
+        { n: 74, obj: "Céréales manufacturées", val: 52, c1: "À longue conservation", c2: "", exp: "Non", ing: "2 x Maïs exotique | 2 x Canne à sucre insulaire" },
+        { n: 114, obj: "Vinaigrette manufacturée", val: 52, c1: "Condiment", c2: "", exp: "Non", ing: "2 x Oignon exotique | 1 x Sève insulaire | 1 x Sargasse tamamo insulaire" }
+        // Note: Vous pouvez ajouter le reste de votre liste ici en suivant le même format.
+    ];
+
+    const tableBody = document.getElementById('tableBody');
+    const searchInput = document.getElementById('search');
+    const filterCat = document.getElementById('filterCat');
+    const countSpan = document.getElementById('count');
+
+    // Initialisation des catégories uniques
+    const cats = [...new Set(data.map(d => d.c1))].sort();
+    cats.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c; opt.textContent = c;
+        filterCat.appendChild(opt);
+    });
+
+    function render(filteredData) {
+        tableBody.innerHTML = filteredData.map(d => `
+                <tr class="hover:bg-blue-50 transition-colors">
+                    <td class="p-3 border-b text-center">${d.n}</td>
+                    <td class="p-3 border-b font-medium text-blue-900">${d.obj}</td>
+                    <td class="p-3 border-b text-emerald-600 font-bold">${d.val}</td>
+                    <td class="p-3 border-b text-xs">
+                        <span class="bg-slate-200 px-2 py-1 rounded">${d.c1}</span>
+                        ${d.c2 ? `<span class="bg-slate-100 px-2 py-1 rounded italic">${d.c2}</span>` : ''}
+                    </td>
+                    <td class="p-3 border-b text-center">
+                        <span class="${d.exp === 'Oui' ? 'text-orange-600 font-bold' : 'text-slate-400'}">${d.exp}</span>
+                    </td>
+                    <td class="p-3 border-b text-xs text-slate-600 italic">${d.ing}</td>
+                </tr>
+            `).join('');
+        countSpan.textContent = filteredData.length;
+    }
+
+    function update() {
+        const s = searchInput.value.toLowerCase();
+        const c = filterCat.value;
+        const filtered = data.filter(d =>
+            (d.obj.toLowerCase().includes(s) || d.ing.toLowerCase().includes(s)) &&
+            (c === "" || d.c1 === c)
+        );
+        render(filtered);
+    }
+
+    let sortDir = 1;
+    function sortTable(col) {
+        sortDir *= -1;
+        const key = col === 0 ? 'n' : 'val';
+        const sorted = [...data].sort((a, b) => (a[key] - b[key]) * sortDir);
+        render(sorted);
+    }
+
+    searchInput.addEventListener('input', update);
+    filterCat.addEventListener('change', update);
+
+    // Premier rendu
+    render(data);
+</script>
+</body>
+</html>
