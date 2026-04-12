@@ -3,43 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atelier de l'Île - Base de données</title>
+    <title>Atelier de l'Île - Base de données Avancée</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .table-container { max-height: 70vh; overflow-y: auto; }
+        .table-container { max-height: 65vh; overflow-y: auto; }
         tr:nth-child(even) { background-color: #f8fafc; }
+        /* Style personnalisé pour la scrollbar du tableau */
+        .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
+        .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-8">
 <div class="max-w-7xl mx-auto bg-white shadow-xl rounded-lg p-6">
-    <header class="mb-8 border-b pb-4">
-        <h1 class="text-3xl font-bold text-slate-800">Atelier de l'Île</h1>
-        <p class="text-slate-500">Base de données des objets et ingrédients</p>
+    <header class="mb-6 border-b pb-4 flex justify-between items-end">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800">Atelier de l'Île</h1>
+            <p class="text-slate-500">Outil de filtrage avancé</p>
+        </div>
+        <div class="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+            <span id="count">0</span> résultat(s)
+        </div>
     </header>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <input type="text" id="search" placeholder="Rechercher un objet ou un ingrédient..."
-               class="border border-slate-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+    <div class="bg-slate-100 p-4 rounded-md mb-6 border border-slate-200 text-sm">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-        <select id="filterCat" class="border border-slate-300 rounded-md px-4 py-2 outline-none">
-            <option value="">Toutes les catégories</option>
-        </select>
+            <div class="space-y-2">
+                <label class="block font-semibold text-slate-700">Recherche textuelle</label>
+                <input type="text" id="searchObj" placeholder="Nom de l'objet..." class="w-full border rounded px-3 py-1.5 outline-none focus:border-blue-500">
+                <input type="text" id="searchIng" placeholder="Ingrédient requis..." class="w-full border rounded px-3 py-1.5 outline-none focus:border-blue-500">
+            </div>
 
-        <div class="flex items-center space-x-2 text-sm text-slate-600">
-            <span id="count">0</span> objets trouvés
+            <div class="space-y-2">
+                <label class="block font-semibold text-slate-700">Niveau & Valeur</label>
+                <div class="flex space-x-2">
+                    <input type="number" id="minN" placeholder="Niv min" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
+                    <input type="number" id="maxN" placeholder="Niv max" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
+                </div>
+                <div class="flex space-x-2">
+                    <input type="number" id="minV" placeholder="Val min" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
+                    <input type="number" id="maxV" placeholder="Val max" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-blue-500" min="1">
+                </div>
+            </div>
+
+            <div class="space-y-2 lg:col-span-2">
+                <label class="block font-semibold text-slate-700">Filtre de Catégories</label>
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 items-start sm:items-center">
+                    <select id="cat1" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500 w-full sm:w-1/3">
+                        <option value="">-- Catégorie A --</option>
+                    </select>
+
+                    <div class="flex items-center space-x-3 bg-white px-3 py-1.5 border rounded">
+                        <label class="flex items-center space-x-1 cursor-pointer">
+                            <input type="radio" name="catOp" value="AND" checked class="text-blue-600">
+                            <span>ET</span>
+                        </label>
+                        <label class="flex items-center space-x-1 cursor-pointer">
+                            <input type="radio" name="catOp" value="OR" class="text-blue-600">
+                            <span>OU</span>
+                        </label>
+                    </div>
+
+                    <select id="cat2" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500 w-full sm:w-1/3">
+                        <option value="">-- Catégorie B --</option>
+                    </select>
+                </div>
+
+                <div class="pt-1">
+                    <label class="mr-2 font-semibold text-slate-700">Recette Expert :</label>
+                    <select id="filterExp" class="border rounded px-3 py-1.5 outline-none focus:border-blue-500">
+                        <option value="">Tous</option>
+                        <option value="Oui">Oui</option>
+                        <option value="Non">Non</option>
+                    </select>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="mt-4 flex justify-end">
+            <button onclick="resetFilters()" class="text-sm text-slate-500 hover:text-slate-800 underline">Réinitialiser les filtres</button>
         </div>
     </div>
 
     <div class="table-container border border-slate-200 rounded-md">
-        <table class="w-full text-left border-collapse">
-            <thead class="bg-slate-100 sticky top-0">
+        <table class="w-full text-left border-collapse whitespace-nowrap">
+            <thead class="bg-slate-200 sticky top-0 shadow-sm z-10">
             <tr>
-                <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200" onclick="sortTable(0)">Niveau ↕</th>
-                <th class="p-3 border-b font-semibold">Objet</th>
-                <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-200" onclick="sortTable(2)">Valeur ↕</th>
+                <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('n')">Niveau ↕</th>
+                <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('obj')">Objet ↕</th>
+                <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('val')">Valeur ↕</th>
                 <th class="p-3 border-b font-semibold">Catégories</th>
-                <th class="p-3 border-b font-semibold">Expert</th>
-                <th class="p-3 border-b font-semibold">Ingrédients</th>
+                <th class="p-3 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('exp')">Expert ↕</th>
+                <th class="p-3 border-b font-semibold w-full">Ingrédients</th>
             </tr>
             </thead>
             <tbody id="tableBody">
@@ -49,7 +107,7 @@
 </div>
 
 <script>
-    // Données complètes (extraites de votre liste)
+    // Le jeu de données complet (Vous pouvez coller la suite de vos données ici)
     const data = [
         { n: 88, obj: "Anneau en quartz exotique", val: 72, c1: "Accessoire", c2: "En céramique", exp: "Non", ing: "3 x Quartz insulaire | 3 x Minerai de fer insulaire | 2 x Pierre insulaire" },
         { n: 16, obj: "Bague en corail manufacturée", val: 42, c1: "Accessoire", c2: "Marin", exp: "Non", ing: "3 x Corail insulaire | 3 x Sarment insulaire" },
@@ -66,65 +124,143 @@
         { n: 126, obj: "Cadre de fossile manufacturé", val: 54, c1: "Animalier", c2: "En céramique", exp: "Non", ing: "3 x Schiste insulaire | 2 x Rondin de palmier insulaire | 1 x Fleur de coton insulaire" },
         { n: 56, obj: "Caramel exotique", val: 81, c1: "Pâtisserie", c2: "", exp: "Non", ing: "4 x Canne à sucre insulaire | 2 x Lait d'animal d'élevage" },
         { n: 74, obj: "Céréales manufacturées", val: 52, c1: "À longue conservation", c2: "", exp: "Non", ing: "2 x Maïs exotique | 2 x Canne à sucre insulaire" },
-        { n: 114, obj: "Vinaigrette manufacturée", val: 52, c1: "Condiment", c2: "", exp: "Non", ing: "2 x Oignon exotique | 1 x Sève insulaire | 1 x Sargasse tamamo insulaire" }
-        // Note: Vous pouvez ajouter le reste de votre liste ici en suivant le même format.
+        { n: 16, obj: "Chaise en bois manufacturée", val: 42, c1: "Meuble", c2: "En bois", exp: "Non", ing: "4 x Rondin insulaire | 2 x Sarment insulaire" },
+        { n: 66, obj: "Chapeau de cavalier exotique", val: 81, c1: "Armure", c2: "Textile", exp: "Non", ing: "2 x Plume d'animal d'élevage | 2 x Fleur de coton insulaire | 2 x Chanvre insulaire" }
     ];
 
+    let currentData = [...data];
+
+    // Éléments du DOM
     const tableBody = document.getElementById('tableBody');
-    const searchInput = document.getElementById('search');
-    const filterCat = document.getElementById('filterCat');
     const countSpan = document.getElementById('count');
+    const inputs = [
+        'searchObj', 'searchIng', 'minN', 'maxN', 'minV', 'maxV', 'filterExp', 'cat1', 'cat2'
+    ].map(id => document.getElementById(id));
+    const radios = document.querySelectorAll('input[name="catOp"]');
 
-    // Initialisation des catégories uniques
-    const cats = [...new Set(data.map(d => d.c1))].sort();
-    cats.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c; opt.textContent = c;
-        filterCat.appendChild(opt);
-    });
+    // Initialisation dynamique des menus déroulants de catégories (fusion de c1 et c2 sans doublons)
+    const uniqueCategories = [...new Set(data.flatMap(d => [d.c1, d.c2]).filter(Boolean))].sort();
 
+    function populateSelect(selectEl) {
+        uniqueCategories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat; opt.textContent = cat;
+            selectEl.appendChild(opt);
+        });
+    }
+    populateSelect(inputs[7]); // cat1
+    populateSelect(inputs[8]); // cat2
+
+    // Fonction d'affichage du tableau
     function render(filteredData) {
         tableBody.innerHTML = filteredData.map(d => `
                 <tr class="hover:bg-blue-50 transition-colors">
-                    <td class="p-3 border-b text-center">${d.n}</td>
+                    <td class="p-3 border-b text-center font-mono">${d.n}</td>
                     <td class="p-3 border-b font-medium text-blue-900">${d.obj}</td>
-                    <td class="p-3 border-b text-emerald-600 font-bold">${d.val}</td>
+                    <td class="p-3 border-b text-emerald-600 font-bold font-mono text-center">${d.val}</td>
                     <td class="p-3 border-b text-xs">
-                        <span class="bg-slate-200 px-2 py-1 rounded">${d.c1}</span>
-                        ${d.c2 ? `<span class="bg-slate-100 px-2 py-1 rounded italic">${d.c2}</span>` : ''}
+                        <span class="inline-block bg-slate-200 px-2 py-1 rounded mb-1 sm:mb-0">${d.c1}</span>
+                        ${d.c2 ? `<span class="inline-block bg-slate-100 px-2 py-1 rounded italic border">${d.c2}</span>` : ''}
                     </td>
                     <td class="p-3 border-b text-center">
-                        <span class="${d.exp === 'Oui' ? 'text-orange-600 font-bold' : 'text-slate-400'}">${d.exp}</span>
+                        <span class="${d.exp === 'Oui' ? 'text-orange-600 font-bold bg-orange-100 px-2 py-1 rounded' : 'text-slate-400'}">${d.exp}</span>
                     </td>
-                    <td class="p-3 border-b text-xs text-slate-600 italic">${d.ing}</td>
+                    <td class="p-3 border-b text-xs text-slate-600 whitespace-normal min-w-[250px] leading-relaxed">
+                        ${d.ing.split(' | ').join('<br>')}
+                    </td>
                 </tr>
             `).join('');
         countSpan.textContent = filteredData.length;
     }
 
-    function update() {
-        const s = searchInput.value.toLowerCase();
-        const c = filterCat.value;
-        const filtered = data.filter(d =>
-            (d.obj.toLowerCase().includes(s) || d.ing.toLowerCase().includes(s)) &&
-            (c === "" || d.c1 === c)
-        );
-        render(filtered);
+    // Moteur de filtrage principal
+    function applyFilters() {
+        const sObj = inputs[0].value.toLowerCase();
+        const sIng = inputs[1].value.toLowerCase();
+        const minN = parseInt(inputs[2].value) || 0;
+        const maxN = parseInt(inputs[3].value) || 999;
+        const minV = parseInt(inputs[4].value) || 0;
+        const maxV = parseInt(inputs[5].value) || 9999;
+        const exp = inputs[6].value;
+        const catA = inputs[7].value;
+        const catB = inputs[8].value;
+        const op = document.querySelector('input[name="catOp"]:checked').value;
+
+        currentData = data.filter(d => {
+            // Filtres texte
+            if (sObj && !d.obj.toLowerCase().includes(sObj)) return false;
+            if (sIng && !d.ing.toLowerCase().includes(sIng)) return false;
+
+            // Filtres numériques
+            if (d.n < minN || d.n > maxN) return false;
+            if (d.val < minV || d.val > maxV) return false;
+
+            // Filtre Expert
+            if (exp !== "" && d.exp !== exp) return false;
+
+            // Filtre Catégories (Logique complexe ET/OU)
+            if (catA || catB) {
+                const itemCats = [d.c1, d.c2].filter(Boolean);
+                const hasA = itemCats.includes(catA);
+                const hasB = itemCats.includes(catB);
+
+                if (catA && catB) {
+                    if (op === "AND" && !(hasA && hasB)) return false;
+                    if (op === "OR" && !(hasA || hasB)) return false;
+                } else if (catA && !hasA) {
+                    return false;
+                } else if (catB && !hasB) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        render(currentData);
     }
 
-    let sortDir = 1;
-    function sortTable(col) {
-        sortDir *= -1;
-        const key = col === 0 ? 'n' : 'val';
-        const sorted = [...data].sort((a, b) => (a[key] - b[key]) * sortDir);
-        render(sorted);
+    // Gestion du tri des colonnes
+    let sortConfig = { key: null, direction: 1 };
+    function sortTable(key) {
+        if (sortConfig.key === key) {
+            sortConfig.direction *= -1; // Inverse la direction
+        } else {
+            sortConfig.key = key;
+            sortConfig.direction = 1;
+        }
+
+        currentData.sort((a, b) => {
+            let valA = a[key];
+            let valB = b[key];
+
+            // Gestion du tri alphabétique insensible à la casse
+            if (typeof valA === 'string') valA = valA.toLowerCase();
+            if (typeof valB === 'string') valB = valB.toLowerCase();
+
+            if (valA < valB) return -1 * sortConfig.direction;
+            if (valA > valB) return 1 * sortConfig.direction;
+            return 0;
+        });
+        render(currentData);
     }
 
-    searchInput.addEventListener('input', update);
-    filterCat.addEventListener('change', update);
+    // Fonction pour vider tous les filtres
+    function resetFilters() {
+        inputs.forEach(input => input.value = '');
+        radios[0].checked = true; // Remet "ET" par défaut
+        applyFilters();
+    }
 
-    // Premier rendu
-    render(data);
+    // Ajout des écouteurs d'événements pour le filtrage en temps réel
+    inputs.forEach(input => {
+        input.addEventListener('input', applyFilters);
+        input.addEventListener('change', applyFilters);
+    });
+    radios.forEach(radio => radio.addEventListener('change', applyFilters));
+
+    // Rendu initial
+    render(currentData);
 </script>
 </body>
 </html>
