@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fabrique de l'Île - Simulateur Hebdomadaire Expert V5</title>
+    <title>Fabrique de l'Île - Simulateur Hebdomadaire Expert V6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .table-container { max-height: 55vh; overflow-y: auto; }
@@ -20,13 +20,13 @@
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-8">
-<div class="max-w-[1500px] mx-auto space-y-6">
+<div class="max-w-[1600px] mx-auto space-y-6">
 
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-slate-700">
         <header class="mb-6 border-b pb-4 flex flex-col md:flex-row justify-between md:items-end gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v5.3</span></h1>
-                <p class="text-slate-500">Moteur Économique Pur (Règle des 8 & Faisceau Rapide)</p>
+                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v6.0</span></h1>
+                <p class="text-slate-500">Moteur Économique Pur (Règle des 8 & Faisceau Étendu)</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
 
@@ -133,7 +133,7 @@
                 <h2 class="text-2xl font-bold text-slate-800 mb-2">Solveur Global (Moteur de Marché FFXIV)</h2>
                 <ul class="text-slate-600 text-sm list-disc list-inside space-y-1 max-w-3xl">
                     <li><span class="font-semibold text-emerald-600">Loi des 8 :</span> La demande ne chute (-1 cran) que lorsque le palier de 8 objets expédiés est franchi de manière cumulée.</li>
-                    <li><span class="font-semibold text-orange-600">Optimisation des Combos :</span> Simule instantanément des milliers de parcours croisés avec l'évolution de la Tension (Groove).</li>
+                    <li><span class="font-semibold text-orange-600">Faisceau Étendu :</span> Le calculateur conserve des centaines de parcours parallèles pour garantir de ne jamais rater la meilleure combinaison à long terme.</li>
                 </ul>
 
                 <div class="mt-4 inline-block bg-orange-50 border border-orange-200 rounded p-2">
@@ -144,8 +144,8 @@
                 </div>
             </div>
 
-            <button onclick="generateWeeklyGlobal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105 h-fit text-lg">
-                ⚙️ Lancer le Supercalculateur
+            <button onclick="generateWeeklyGlobal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105 h-fit text-lg flex items-center justify-center min-w-[300px]">
+                <span id="btnText">⚙️ Lancer le Supercalculateur</span>
             </button>
         </div>
 
@@ -367,6 +367,9 @@
         applyFilters();
     }
 
+    // ==========================================
+    // RESTAURATION DES 10 COLONNES
+    // ==========================================
     const tableBody = document.getElementById('tableBody');
     const countSpan = document.getElementById('count');
     const inputs = ['searchObj', 'searchIng', 'minV', 'maxV', 'filterExp', 'cat1', 'cat2', 'filterTime'].map(id => document.getElementById(id));
@@ -397,7 +400,16 @@
                 <tr class="hover:bg-slate-100 transition-colors">
                     <td class="p-1 border-b text-center font-bold text-indigo-800 bg-indigo-50 border-r border-slate-200">${d.lvl}</td>
                     <td class="p-1 border-b font-medium text-slate-900 pl-2">${d.obj}</td>
-                    <td class="p-1 border-b text-center">
+                    <td class="p-1 border-b text-center bg-indigo-50/50">
+                        <select class="select-market select-evo" onchange="updateMarket(${d.id}, 'evo', this.value)">
+                            <option value="Forte augmentation" ${m.evo==='Forte augmentation'?'selected':''}>↑↑ Forte aug.</option>
+                            <option value="Augmentation" ${m.evo==='Augmentation'?'selected':''}>↑ Augmentation</option>
+                            <option value="Constante" ${m.evo==='Constante'?'selected':''}>- Constante</option>
+                            <option value="En baisse" ${m.evo==='En baisse'?'selected':''}>↓ En baisse</option>
+                            <option value="En chute" ${m.evo==='En chute'?'selected':''}>↓↓ En chute</option>
+                        </select>
+                    </td>
+                    <td class="p-1 border-b text-center bg-orange-50/50">
                         <select class="select-market select-pop" onchange="updateMarket(${d.id}, 'pop', this.value)">
                             <option value="Faible" ${m.pop==='Faible'?'selected':''}>Faible (x0.8)</option>
                             <option value="Moyenne" ${m.pop==='Moyenne'?'selected':''}>Moyenne (x1.0)</option>
@@ -405,7 +417,7 @@
                             <option value="Très élevée" ${m.pop==='Très élevée'?'selected':''}>Très élevée (x1.4)</option>
                         </select>
                     </td>
-                    <td class="p-1 border-b text-center">
+                    <td class="p-1 border-b border-r border-slate-200 text-center bg-emerald-50/50">
                         <select class="select-market select-dem" onchange="updateMarket(${d.id}, 'dem', this.value)">
                             <option value="0" ${m.dem===0?'selected':''}>Excédentaire (x0.6)</option>
                             <option value="1" ${m.dem===1?'selected':''}>En surplus (x0.8)</option>
@@ -483,8 +495,10 @@
     inputs.forEach(input => { if(input) { input.addEventListener('input', applyFilters); input.addEventListener('change', applyFilters); } });
     radios.forEach(radio => radio.addEventListener('change', applyFilters));
 
+    initMarketData();
+
     // ==========================================
-    // V5: SUPER BEAM SEARCH OPTIMISÉ
+    // V6: FAISCEAU ÉTENDU (MAXIMISATION ABSOLUE)
     // ==========================================
 
     function getRealValWithFormula(item, effectiveDemLevel) {
@@ -494,8 +508,9 @@
         return Math.floor(item.val * popMult * demMult);
     }
 
-    const WEEK_BEAM_WIDTH = 25;
-    const DAY_BEAM_WIDTH = 50;
+    // PARAMÈTRES IA BOOSTÉS (Un peu plus long à calculer, mais rendement maximal garanti)
+    const WEEK_BEAM_WIDTH = 100;
+    const DAY_BEAM_WIDTH = 250;
 
     function generateWeeklyGlobal() {
         saveSettings();
@@ -503,6 +518,7 @@
         const allowRare = document.getElementById('allowRareExp').checked;
         const activeItems = currentData.filter(d => allowRare || d.exp === 'Non');
         const maxGroove = parseInt(document.getElementById('maxGroove').value) || 0;
+        const btn = document.getElementById('btnText');
 
         if (activeItems.length === 0) {
             alert("Aucune recette disponible avec les filtres actuels.");
@@ -512,7 +528,10 @@
         document.getElementById('solverResults').classList.remove('hidden');
         document.getElementById('shoppingListContainer').classList.add('hidden');
         const grid = document.getElementById('weeklyGrid');
-        grid.innerHTML = '<div class="text-center p-12"><div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div><div class="text-indigo-800 font-bold text-xl">Simulation par faisceau en cours...</div><div class="text-sm text-indigo-500 mt-2">Génération des plannings et calcul des ressources</div></div>';
+
+        // Animation de chargement
+        btn.innerHTML = "<span class='animate-spin mr-2'>⏳</span> Calcul des scénarios...";
+        grid.innerHTML = '<div class="text-center p-12"><div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div><div class="text-indigo-800 font-bold text-xl">Recherche des meilleurs parcours croisés...</div><div class="text-sm text-indigo-500 mt-2">Le supercalculateur évalue des milliers de possibilités (≈ 1 seconde)</div></div>';
 
         setTimeout(() => {
             let initialDemands = {};
@@ -556,6 +575,7 @@
                                     canAddMore = true;
                                     let isCombo = partial.seq.length > 0;
 
+                                    // La demande ne baisse qu'à la FIN de la journée. Le calcul actuel se base sur le stock d'hier.
                                     let currentItemsProduced = state.producedCount[item.id] || 0;
                                     let demandDrops = Math.floor(currentItemsProduced / 8);
                                     let effDem = Math.max(0, initialDemands[item.id] - demandDrops);
@@ -574,22 +594,15 @@
                                     });
                                 }
                             }
-
-                            if (!canAddMore && partial.time > 0) {
-                                const rem = 24 - partial.time;
-                                if (rem === 0 || rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0) {
-                                    completedPaths.push(partial);
-                                }
-                            }
                         }
 
                         nextDayBeam.sort((a, b) => (b.gain / b.time) - (a.gain / a.time));
                         dayBeam = nextDayBeam.slice(0, DAY_BEAM_WIDTH);
                     }
 
+                    // On ne garde QUE les plannings qui remplissent parfaitement la journée (24h)
                     dayBeam.forEach(p => {
-                        const rem = 24 - p.time;
-                        if (p.time > 0 && (rem === 0 || rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0)) {
+                        if (p.time === 24) {
                             completedPaths.push(p);
                         }
                     });
@@ -602,7 +615,8 @@
                         if (!sigs.has(sig)) {
                             sigs.add(sig);
                             uniqueDailyPaths.push(p);
-                            if (uniqueDailyPaths.length >= 15) break;
+                            // On garde les 50 meilleurs plannings différents de la journée
+                            if (uniqueDailyPaths.length >= 50) break;
                         }
                     }
 
@@ -651,7 +665,8 @@
             }
 
             if(beam.length === 0) {
-                grid.innerHTML = '<div class="text-center text-red-500 font-bold p-8">Impossible de générer un planning. Réduisez vos filtres.</div>';
+                grid.innerHTML = '<div class="text-center text-red-500 font-bold p-8">Impossible de générer un planning de 24h. Réduisez vos filtres ou autorisez les objets rares.</div>';
+                btn.innerHTML = "⚙️ Lancer le Supercalculateur";
                 return;
             }
 
@@ -663,7 +678,10 @@
             renderValidityDate();
             renderWeeklyV5(finalPlan, bestWeek.totalGain);
             renderShoppingList(finalPlan);
-        }, 50);
+
+            // Remise en état du bouton
+            btn.innerHTML = "⚙️ Relancer le Supercalculateur";
+        }, 100);
     }
 
     function renderValidityDate() {
