@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fabrique de l'Île - Simulateur Hebdomadaire Expert V6</title>
+    <title>Fabrique de l'Île - Simulateur Hebdomadaire Expert V7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .table-container { max-height: 55vh; overflow-y: auto; }
@@ -25,8 +25,8 @@
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-slate-700">
         <header class="mb-6 border-b pb-4 flex flex-col md:flex-row justify-between md:items-end gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v6.0</span></h1>
-                <p class="text-slate-500">Moteur Économique Pur (Règle des 8 & Faisceau Étendu)</p>
+                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v7.0</span></h1>
+                <p class="text-slate-500">Moteur Économique Journalier (Stable & Précis)</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
 
@@ -102,11 +102,6 @@
         </div>
 
         <div class="table-container border border-slate-200 rounded-md relative">
-            <div id="apiLoader" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
-                <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600 mb-4"></div>
-                <p class="text-indigo-800 font-bold text-lg">Lecture des données...</p>
-            </div>
-
             <table class="w-full text-left border-collapse whitespace-nowrap text-sm">
                 <thead class="bg-slate-200 sticky top-0 shadow-sm z-10">
                 <tr>
@@ -130,10 +125,10 @@
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-indigo-500">
         <div class="flex flex-col md:flex-row justify-between md:items-end mb-4">
             <div class="mb-4 md:mb-0">
-                <h2 class="text-2xl font-bold text-slate-800 mb-2">Solveur Global (Moteur de Marché FFXIV)</h2>
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Solveur Stricte (Garantie de Rentabilité)</h2>
                 <ul class="text-slate-600 text-sm list-disc list-inside space-y-1 max-w-3xl">
-                    <li><span class="font-semibold text-emerald-600">Loi des 8 :</span> La demande ne chute (-1 cran) que lorsque le palier de 8 objets expédiés est franchi de manière cumulée.</li>
-                    <li><span class="font-semibold text-orange-600">Faisceau Étendu :</span> Le calculateur conserve des centaines de parcours parallèles pour garantir de ne jamais rater la meilleure combinaison à long terme.</li>
+                    <li><span class="font-semibold text-emerald-600">Recherche Exhaustive :</span> Ne rate aucun combo. Calcule absolument toutes les combinaisons journalières parfaites de 24h.</li>
+                    <li><span class="font-semibold text-indigo-600">Loi des 8 Stricte :</span> Met à jour la demande en temps réel à chaque fin de journée avant d'entamer le calcul du lendemain.</li>
                 </ul>
 
                 <div class="mt-4 inline-block bg-orange-50 border border-orange-200 rounded p-2">
@@ -144,14 +139,13 @@
                 </div>
             </div>
 
-            <button onclick="generateWeeklyGlobal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105 h-fit text-lg flex items-center justify-center min-w-[300px]">
-                <span id="btnText">⚙️ Lancer le Supercalculateur</span>
+            <button onclick="generateWeekly()" id="btnGenerate" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105 h-fit text-lg flex items-center justify-center min-w-[300px]">
+                <span>⚙️ Générer le Planning</span>
             </button>
         </div>
 
         <div id="solverResults" class="hidden mt-6">
-            <div id="validityDateBox" class="bg-blue-50 border border-blue-200 text-blue-800 text-sm p-3 rounded-lg text-center mb-6 shadow-sm">
-            </div>
+            <div id="validityDateBox" class="bg-blue-50 border border-blue-200 text-blue-800 text-sm p-3 rounded-lg text-center mb-6 shadow-sm"></div>
 
             <div class="bg-indigo-900 border border-indigo-700 rounded-lg p-5 text-center mb-8 shadow-xl relative overflow-hidden">
                 <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
@@ -159,8 +153,7 @@
                 <div class="text-5xl font-black text-white drop-shadow-md" id="weekTotalGain">0 <span class="text-2xl text-indigo-300">Assignats</span></div>
             </div>
 
-            <div id="weeklyGrid" class="space-y-6 mb-8">
-            </div>
+            <div id="weeklyGrid" class="space-y-6 mb-8"></div>
 
             <div id="shoppingListContainer" class="hidden border-t-4 border-emerald-500 bg-slate-50 rounded-lg p-6 shadow-md mt-10">
                 <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center"><span class="mr-2">🛒</span> Liste des Ingrédients (Semaine Complète x3)</h3>
@@ -367,9 +360,6 @@
         applyFilters();
     }
 
-    // ==========================================
-    // RESTAURATION DES 10 COLONNES
-    // ==========================================
     const tableBody = document.getElementById('tableBody');
     const countSpan = document.getElementById('count');
     const inputs = ['searchObj', 'searchIng', 'minV', 'maxV', 'filterExp', 'cat1', 'cat2', 'filterTime'].map(id => document.getElementById(id));
@@ -400,16 +390,7 @@
                 <tr class="hover:bg-slate-100 transition-colors">
                     <td class="p-1 border-b text-center font-bold text-indigo-800 bg-indigo-50 border-r border-slate-200">${d.lvl}</td>
                     <td class="p-1 border-b font-medium text-slate-900 pl-2">${d.obj}</td>
-                    <td class="p-1 border-b text-center bg-indigo-50/50">
-                        <select class="select-market select-evo" onchange="updateMarket(${d.id}, 'evo', this.value)">
-                            <option value="Forte augmentation" ${m.evo==='Forte augmentation'?'selected':''}>↑↑ Forte aug.</option>
-                            <option value="Augmentation" ${m.evo==='Augmentation'?'selected':''}>↑ Augmentation</option>
-                            <option value="Constante" ${m.evo==='Constante'?'selected':''}>- Constante</option>
-                            <option value="En baisse" ${m.evo==='En baisse'?'selected':''}>↓ En baisse</option>
-                            <option value="En chute" ${m.evo==='En chute'?'selected':''}>↓↓ En chute</option>
-                        </select>
-                    </td>
-                    <td class="p-1 border-b text-center bg-orange-50/50">
+                    <td class="p-1 border-b text-center">
                         <select class="select-market select-pop" onchange="updateMarket(${d.id}, 'pop', this.value)">
                             <option value="Faible" ${m.pop==='Faible'?'selected':''}>Faible (x0.8)</option>
                             <option value="Moyenne" ${m.pop==='Moyenne'?'selected':''}>Moyenne (x1.0)</option>
@@ -417,7 +398,7 @@
                             <option value="Très élevée" ${m.pop==='Très élevée'?'selected':''}>Très élevée (x1.4)</option>
                         </select>
                     </td>
-                    <td class="p-1 border-b border-r border-slate-200 text-center bg-emerald-50/50">
+                    <td class="p-1 border-b text-center">
                         <select class="select-market select-dem" onchange="updateMarket(${d.id}, 'dem', this.value)">
                             <option value="0" ${m.dem===0?'selected':''}>Excédentaire (x0.6)</option>
                             <option value="1" ${m.dem===1?'selected':''}>En surplus (x0.8)</option>
@@ -454,7 +435,6 @@
     function applyFilters() {
         const userRank = parseInt(document.getElementById('userRank').value) || 20;
         const [sObj, sIng, minV, maxV, exp, catA, catB, timeFilter] = inputs.map(i => i?.value.toLowerCase() || "");
-
         const catOpEl = document.querySelector('input[name="catOp"]:checked');
         const op = catOpEl ? catOpEl.value : "AND";
 
@@ -498,7 +478,7 @@
     initMarketData();
 
     // ==========================================
-    // V6: FAISCEAU ÉTENDU (MAXIMISATION ABSOLUE)
+    // V7: L'ALGORITHME GLOUTON (STABLE & PUISSANT)
     // ==========================================
 
     function getRealValWithFormula(item, effectiveDemLevel) {
@@ -508,17 +488,13 @@
         return Math.floor(item.val * popMult * demMult);
     }
 
-    // PARAMÈTRES IA BOOSTÉS (Un peu plus long à calculer, mais rendement maximal garanti)
-    const WEEK_BEAM_WIDTH = 100;
-    const DAY_BEAM_WIDTH = 250;
-
-    function generateWeeklyGlobal() {
+    function generateWeekly() {
         saveSettings();
 
         const allowRare = document.getElementById('allowRareExp').checked;
         const activeItems = currentData.filter(d => allowRare || d.exp === 'Non');
         const maxGroove = parseInt(document.getElementById('maxGroove').value) || 0;
-        const btn = document.getElementById('btnText');
+        const btn = document.getElementById('btnGenerate');
 
         if (activeItems.length === 0) {
             alert("Aucune recette disponible avec les filtres actuels.");
@@ -527,15 +503,17 @@
 
         document.getElementById('solverResults').classList.remove('hidden');
         document.getElementById('shoppingListContainer').classList.add('hidden');
-        const grid = document.getElementById('weeklyGrid');
 
-        // Animation de chargement
-        btn.innerHTML = "<span class='animate-spin mr-2'>⏳</span> Calcul des scénarios...";
-        grid.innerHTML = '<div class="text-center p-12"><div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div><div class="text-indigo-800 font-bold text-xl">Recherche des meilleurs parcours croisés...</div><div class="text-sm text-indigo-500 mt-2">Le supercalculateur évalue des milliers de possibilités (≈ 1 seconde)</div></div>';
+        btn.innerHTML = "<span class='animate-spin mr-2'>⏳</span> Calcul du planning parfait...";
 
+        // Laisse l'UI se mettre à jour avant de figer le navigateur
         setTimeout(() => {
-            let initialDemands = {};
-            data.forEach(d => initialDemands[d.id] = marketData[d.id].dem);
+            let currentDemands = {};
+            data.forEach(d => currentDemands[d.id] = marketData[d.id].dem);
+
+            let producedCounts = {};
+            let currentGlobalGroove = 0;
+            let totalWeeklyGain = 0;
 
             const adjacency = {};
             activeItems.forEach(item1 => {
@@ -547,147 +525,104 @@
                 });
             });
 
-            let beam = [{
-                history: [],
-                producedCount: {},
-                groove: 0,
-                totalGain: 0
-            }];
-
             const weekDays = ['Jour 1', 'Jour 2', 'Jour 3', 'Jour 4', 'Jour 5'];
+            let finalPlan = [];
 
+            // Boucle Jour par Jour
             for (let day = 0; day < 5; day++) {
-                let newBeam = [];
 
-                for (let state of beam) {
-                    let dayBeam = [{ seq: [], time: 0, gain: 0, groove: state.groove }];
-                    let completedPaths = [];
+                // Fonction DFS locale (trouve la meilleure combinaison pour CE jour précis)
+                let bestDailySchedule = { gain: -1, path: [], endGroove: currentGlobalGroove, time: 0 };
 
-                    for (let step = 0; step < 6; step++) {
-                        let nextDayBeam = [];
-
-                        for (let partial of dayBeam) {
-                            let possibleItems = partial.seq.length === 0 ? activeItems : adjacency[partial.seq[partial.seq.length - 1].id];
-
-                            let canAddMore = false;
-                            for (let item of possibleItems) {
-                                if (partial.time + item.t <= 24) {
-                                    canAddMore = true;
-                                    let isCombo = partial.seq.length > 0;
-
-                                    // La demande ne baisse qu'à la FIN de la journée. Le calcul actuel se base sur le stock d'hier.
-                                    let currentItemsProduced = state.producedCount[item.id] || 0;
-                                    let demandDrops = Math.floor(currentItemsProduced / 8);
-                                    let effDem = Math.max(0, initialDemands[item.id] - demandDrops);
-
-                                    let baseVal = getRealValWithFormula(item, effDem);
-                                    let valWithCombo = isCombo ? baseVal * 2 : baseVal;
-                                    let stepGain = Math.floor(valWithCombo * (1 + partial.groove / 100)) * 3;
-
-                                    let newGroove = isCombo ? Math.min(maxGroove, partial.groove + 3) : partial.groove;
-
-                                    nextDayBeam.push({
-                                        seq: [...partial.seq, item],
-                                        time: partial.time + item.t,
-                                        gain: partial.gain + stepGain,
-                                        groove: newGroove
-                                    });
-                                }
-                            }
+                function dfs(seq, currentTime, currentGain, groove) {
+                    // Optimisation: on veut des journées pleines de 24h
+                    if (currentTime === 24) {
+                        if (currentGain > bestDailySchedule.gain) {
+                            bestDailySchedule = { gain: currentGain, path: [...seq], endGroove: groove, time: currentTime };
                         }
-
-                        nextDayBeam.sort((a, b) => (b.gain / b.time) - (a.gain / a.time));
-                        dayBeam = nextDayBeam.slice(0, DAY_BEAM_WIDTH);
+                        return;
                     }
 
-                    // On ne garde QUE les plannings qui remplissent parfaitement la journée (24h)
-                    dayBeam.forEach(p => {
-                        if (p.time === 24) {
-                            completedPaths.push(p);
-                        }
-                    });
+                    let possibleItems = seq.length === 0 ? activeItems : adjacency[seq[seq.length-1].item.id];
+                    let added = false;
 
-                    completedPaths.sort((a, b) => b.gain - a.gain);
-                    let uniqueDailyPaths = [];
-                    let sigs = new Set();
-                    for (let p of completedPaths) {
-                        let sig = p.seq.map(i => i.id).join('-');
-                        if (!sigs.has(sig)) {
-                            sigs.add(sig);
-                            uniqueDailyPaths.push(p);
-                            // On garde les 50 meilleurs plannings différents de la journée
-                            if (uniqueDailyPaths.length >= 50) break;
-                        }
-                    }
+                    for (let item of possibleItems) {
+                        if (currentTime + item.t <= 24) {
+                            added = true;
+                            let isCombo = seq.length > 0;
 
-                    for (let daily of uniqueDailyPaths) {
-                        let tempProduced = {...state.producedCount};
-                        let richPath = [];
-                        let currentGroove = state.groove;
-
-                        for (let i = 0; i < daily.seq.length; i++) {
-                            let item = daily.seq[i];
-                            let isCombo = i > 0;
-
-                            let currentItemsProduced = state.producedCount[item.id] || 0;
-                            let demandDrops = Math.floor(currentItemsProduced / 8);
-                            let effDem = Math.max(0, initialDemands[item.id] - demandDrops);
-
-                            let baseVal = getRealValWithFormula(item, effDem);
+                            let baseVal = getRealValWithFormula(item, currentDemands[item.id]);
                             let valWithCombo = isCombo ? baseVal * 2 : baseVal;
-                            let stepGainSingle = Math.floor(valWithCombo * (1 + currentGroove / 100));
+                            let stepGain = Math.floor(valWithCombo * (1 + groove / 100));
 
-                            richPath.push({
+                            let newGroove = isCombo ? Math.min(maxGroove, groove + 3) : groove;
+
+                            seq.push({
                                 item: item,
                                 combo: isCombo,
-                                stepGainSingle: stepGainSingle,
-                                currentGroove: currentGroove,
-                                effDem: effDem
+                                stepGainSingle: stepGain,
+                                currentGroove: groove,
+                                effDem: currentDemands[item.id]
                             });
 
-                            if (isCombo) currentGroove = Math.min(maxGroove, currentGroove + 3);
-
-                            let addedUnits = (isCombo ? 2 : 1) * 3;
-                            tempProduced[item.id] = (tempProduced[item.id] || 0) + addedUnits;
+                            dfs(seq, currentTime + item.t, currentGain + stepGain, newGroove);
+                            seq.pop();
                         }
+                    }
 
-                        newBeam.push({
-                            history: [...state.history, { path: richPath, totalGainx3: daily.gain, endGroove: daily.groove, time: daily.time }],
-                            producedCount: tempProduced,
-                            groove: daily.groove,
-                            totalGain: state.totalGain + daily.gain
-                        });
+                    // Si on ne peut plus rien ajouter mais qu'on a pas fait 24h (rare mais possible avec des filtres stricts)
+                    if (!added && currentTime > 0) {
+                        const rem = 24 - currentTime;
+                        if (rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0) {
+                            if (currentGain > bestDailySchedule.gain) {
+                                bestDailySchedule = { gain: currentGain, path: [...seq], endGroove: groove, time: currentTime };
+                            }
+                        }
                     }
                 }
 
-                newBeam.sort((a, b) => b.totalGain - a.totalGain);
-                beam = newBeam.slice(0, WEEK_BEAM_WIDTH);
-            }
+                // On lance la recherche pour le jour actuel
+                dfs([], 0, 0, currentGlobalGroove);
 
-            if(beam.length === 0) {
-                grid.innerHTML = '<div class="text-center text-red-500 font-bold p-8">Impossible de générer un planning de 24h. Réduisez vos filtres ou autorisez les objets rares.</div>';
-                btn.innerHTML = "⚙️ Lancer le Supercalculateur";
-                return;
-            }
+                // Si on a trouvé un planning
+                if (bestDailySchedule.gain > -1) {
+                    // 1. On sauvegarde le résultat pour l'affichage
+                    finalPlan.push({ dayName: weekDays[day], schedule: bestDailySchedule });
 
-            let bestWeek = beam[0];
-            let finalPlan = bestWeek.history.map((dayData, index) => {
-                return { dayName: weekDays[index], schedule: dayData };
-            });
+                    // 2. On encaisse l'argent (x3 Fabriques)
+                    totalWeeklyGain += (bestDailySchedule.gain * 3);
+
+                    // 3. On met à jour la tension (Groove) globale pour le lendemain
+                    currentGlobalGroove = bestDailySchedule.endGroove;
+
+                    // 4. LA RÈGLE DES 8 : On met à jour l'offre et la demande pour le lendemain
+                    for (let step of bestDailySchedule.path) {
+                        let item = step.item;
+                        let addedUnits = (step.combo ? 2 : 1) * 3; // 3 fabriques
+
+                        producedCounts[item.id] = (producedCounts[item.id] || 0) + addedUnits;
+
+                        // On recalcule la nouvelle demande : baisse d'un cran tous les 8 objets
+                        let drops = Math.floor(producedCounts[item.id] / 8);
+                        currentDemands[item.id] = Math.max(0, marketData[item.id].dem - drops);
+                    }
+                } else {
+                    // Journée vide impossible à remplir
+                    finalPlan.push({ dayName: weekDays[day], schedule: { gain: 0, path: [], endGroove: currentGlobalGroove, time: 0 } });
+                }
+            }
 
             renderValidityDate();
-            renderWeeklyV5(finalPlan, bestWeek.totalGain);
+            renderWeeklyV7(finalPlan, totalWeeklyGain);
             renderShoppingList(finalPlan);
 
-            // Remise en état du bouton
-            btn.innerHTML = "⚙️ Relancer le Supercalculateur";
-        }, 100);
+            btn.innerHTML = "⚙️ Relancer le Planning";
+        }, 50);
     }
 
     function renderValidityDate() {
         const now = new Date();
         const dayOfWeek = now.getDay();
-
         const diffToTuesday = (dayOfWeek >= 2) ? (dayOfWeek - 2) : (dayOfWeek + 5);
 
         const lastTuesday = new Date(now);
@@ -703,12 +638,20 @@
         document.getElementById('validityDateBox').innerHTML = `ℹ️ Les données de marché et ce planning sont valables pour la semaine du <strong>${strStart}</strong> au <strong>${strEnd}</strong>.`;
     }
 
-    function renderWeeklyV5(weeklyPlan, totalGain) {
+    function renderWeeklyV7(weeklyPlan, totalGain) {
         document.getElementById('weekTotalGain').innerHTML = totalGain.toLocaleString() + ' <span class="text-2xl text-indigo-300">Assignats</span>';
         const grid = document.getElementById('weeklyGrid');
 
         grid.innerHTML = weeklyPlan.map(day => {
             let s = day.schedule;
+
+            if (s.path.length === 0) {
+                return `<div class="bg-white rounded-lg border border-slate-300 p-4 shadow-sm">
+                                <h3 class="font-bold text-xl text-slate-800">${day.dayName}</h3>
+                                <div class="text-slate-500 italic mt-2">Aucun planning valide trouvé pour cette journée avec vos filtres.</div>
+                            </div>`;
+            }
+
             let htmlPath = s.path.map((step, i) => {
                 let color = step.combo ? 'bg-emerald-100 border-emerald-300 text-emerald-800 font-semibold' : 'bg-white border-slate-200 text-slate-700';
                 let arrow = i < s.path.length - 1 ? `<span class="mx-1 text-slate-400 font-bold text-xs">➔</span>` : '';
@@ -734,8 +677,8 @@
                         </div>
                         <div class="flex items-center mt-3 md:mt-0 space-x-4 border-t md:border-t-0 md:border-l border-slate-200 pt-2 md:pt-0 md:pl-4">
                             <div class="text-center"><div class="text-[10px] text-slate-400 uppercase font-bold">Durée</div><div class="font-mono font-bold text-indigo-900">${s.time}h</div></div>
-                            <div class="text-center"><div class="text-[10px] text-slate-400 uppercase font-bold" title="Revenu d'une seule fabrique par heure">Gain/h (x1)</div><div class="font-bold text-blue-600">${(s.totalGainx3 / 3 / s.time).toFixed(1)}</div></div>
-                            <div class="text-center"><div class="text-[10px] text-emerald-600 uppercase font-bold">Revenu (x3)</div><div class="font-black text-emerald-600 text-lg">${s.totalGainx3}</div></div>
+                            <div class="text-center"><div class="text-[10px] text-slate-400 uppercase font-bold" title="Revenu d'une seule fabrique">Gain (x1)</div><div class="font-bold text-blue-600">${s.gain}</div></div>
+                            <div class="text-center"><div class="text-[10px] text-emerald-600 uppercase font-bold">Revenu (x3)</div><div class="font-black text-emerald-600 text-lg">${s.gain * 3}</div></div>
                         </div>
                     </div>
                 `;
@@ -744,7 +687,7 @@
                     <div class="bg-white rounded-lg border border-slate-300 p-4 shadow-sm hover:shadow-md transition-shadow">
                         <div class="flex justify-between items-end border-b pb-2 mb-2">
                             <h3 class="font-bold text-xl text-slate-800">${day.dayName}</h3>
-                            <span class="font-black text-emerald-600">+ ${s.totalGainx3}</span>
+                            <span class="font-black text-emerald-600">+ ${s.gain * 3}</span>
                         </div>
                         <div class="space-y-1">
                             ${dayHtml}
