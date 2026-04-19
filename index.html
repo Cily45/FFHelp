@@ -3,34 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fabrique de l'Île - Simulateur Hebdomadaire Expert V7</title>
+    <title>Fabrique de l'Île - Simulateur Hebdomadaire Expert V7 Épuré</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .table-container { max-height: 55vh; overflow-y: auto; }
-        tr:nth-child(even) { background-color: #f8fafc; }
-        .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
-        .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        .select-market { font-size: 0.75rem; padding: 0.1rem 0.25rem; border-radius: 0.25rem; border: 1px solid #cbd5e1; outline: none; background: white; cursor: pointer; width: 100%; text-align: center; }
-        .select-pop { color: #b45309; }
-        .select-dem { color: #047857; }
-        .select-evo { color: #4338ca; font-weight: bold; }
-    </style>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-8">
-<div class="max-w-[1600px] mx-auto space-y-6">
+<div class="max-w-[1200px] mx-auto space-y-6">
 
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-slate-700">
-        <header class="mb-6 border-b pb-4 flex flex-col md:flex-row justify-between md:items-end gap-4">
+        <header class="flex flex-col md:flex-row justify-between items-center md:items-end gap-6">
             <div>
-                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v7.0</span></h1>
-                <p class="text-slate-500">Moteur Économique Journalier (Stable & Précis)</p>
+                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v7.1</span></h1>
+                <p class="text-slate-500">Moteur Économique Journalier (Version Épurée)</p>
             </div>
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="flex flex-wrap justify-center items-center gap-3">
 
-                <div class="flex items-center space-x-2 bg-emerald-50 px-3 py-1.5 rounded border border-emerald-200 shadow-sm" title="Statut du fichier market_data.json">
+                <div class="flex items-center space-x-2 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm" title="Statut du fichier market_data.json">
                     <span class="text-emerald-600 text-xl">📄</span>
                     <div class="flex flex-col">
                         <span class="text-[10px] text-emerald-600 font-bold uppercase leading-none">Fichier JSON</span>
@@ -38,10 +25,10 @@
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-4 bg-indigo-50 px-4 py-1.5 rounded border border-indigo-200 shadow-sm">
+                <div class="flex items-center space-x-4 bg-indigo-50 px-4 py-2 rounded-lg border border-indigo-200 shadow-sm">
                     <div class="flex flex-col items-center">
                         <label class="text-[10px] font-bold text-indigo-800 uppercase tracking-wide">Rang d'Île</label>
-                        <input type="number" id="userRank" min="1" max="20" value="20" class="w-12 text-sm border-b border-indigo-300 outline-none font-bold text-indigo-700 text-center bg-transparent" onchange="saveSettings(); applyFilters();">
+                        <input type="number" id="userRank" min="1" max="20" value="20" class="w-12 text-sm border-b border-indigo-300 outline-none font-bold text-indigo-700 text-center bg-transparent" onchange="saveSettings();">
                     </div>
                     <div class="w-px h-6 bg-indigo-200"></div>
                     <div class="flex flex-col items-center" title="La limite maximale de Tension de votre île (dépend de vos monuments construits).">
@@ -50,101 +37,34 @@
                     </div>
                 </div>
 
-                <button onclick="clearLocalStorage()" class="text-xs bg-red-100 text-red-600 px-3 py-2 rounded hover:bg-red-200 font-semibold transition">Vider Cache</button>
-                <span class="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-2 rounded border border-blue-200">
-                        <span id="count">0</span> recette(s)
-                    </span>
+                <button onclick="clearLocalStorage()" class="text-xs bg-red-100 text-red-600 px-3 py-2 h-full rounded-lg hover:bg-red-200 font-semibold transition" title="Remet tout le marché à l'état Moyen/Suffisant et vide le cache">Vider Cache</button>
             </div>
         </header>
-
-        <div class="bg-slate-100 p-4 rounded-md mb-6 border border-slate-200 text-sm">
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                <div class="space-y-2">
-                    <label class="block font-semibold text-slate-700">Recherche textuelle</label>
-                    <input type="text" id="searchObj" placeholder="Nom de la recette..." class="w-full border rounded px-3 py-1.5 outline-none focus:border-indigo-500">
-                    <input type="text" id="searchIng" placeholder="Ingrédient requis..." class="w-full border rounded px-3 py-1.5 outline-none focus:border-indigo-500">
-                </div>
-
-                <div class="space-y-2">
-                    <label class="block font-semibold text-slate-700">Filtre de Catégories</label>
-                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 items-start sm:items-center">
-                        <select id="cat1" class="border rounded px-3 py-1.5 outline-none focus:border-indigo-500 w-full"><option value="">-- Catégorie A --</option></select>
-
-                        <div class="flex items-center space-x-2 bg-white px-2 py-1.5 border rounded text-xs">
-                            <label class="flex items-center space-x-1 cursor-pointer"><input type="radio" name="catOp" value="AND" checked class="text-indigo-600"><span>ET</span></label>
-                            <label class="flex items-center space-x-1 cursor-pointer"><input type="radio" name="catOp" value="OR" class="text-indigo-600"><span>OU</span></label>
-                        </div>
-
-                        <select id="cat2" class="border rounded px-3 py-1.5 outline-none focus:border-indigo-500 w-full"><option value="">-- Catégorie B --</option></select>
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <label class="block font-semibold text-slate-700">Temps & Éléments Rares</label>
-                    <div class="flex space-x-2">
-                        <select id="filterTime" class="w-1/2 border rounded px-2 py-1.5 outline-none focus:border-indigo-500"><option value="">Tous</option><option value="4">4h</option><option value="6">6h</option><option value="8">8h</option></select>
-                        <select id="filterExp" class="w-1/2 border rounded px-2 py-1.5 outline-none focus:border-indigo-500"><option value="">Tous</option><option value="Oui">Rare Expéd: Oui</option><option value="Non">Rare Expéd: Non</option></select>
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <label class="block font-semibold text-slate-700">Valeur de base</label>
-                    <div class="flex space-x-2">
-                        <input type="number" id="minV" placeholder="Val min" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-indigo-500" min="1">
-                        <input type="number" id="maxV" placeholder="Val max" class="w-1/2 border rounded px-3 py-1.5 outline-none focus:border-indigo-500" min="1">
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-4 flex justify-end items-center">
-                <button onclick="resetFilters()" class="text-sm text-slate-500 hover:text-slate-800 underline">Réinitialiser les filtres</button>
-            </div>
-        </div>
-
-        <div class="table-container border border-slate-200 rounded-md relative">
-            <table class="w-full text-left border-collapse whitespace-nowrap text-sm">
-                <thead class="bg-slate-200 sticky top-0 shadow-sm z-10">
-                <tr>
-                    <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center w-12 text-indigo-800" onclick="sortTable('lvl')">Rang ↕</th>
-                    <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300" onclick="sortTable('obj')">Recette ↕</th>
-                    <th class="p-2 border-b font-semibold bg-indigo-50 text-indigo-900 border-l border-slate-300 w-36 text-center">📈 Évolution</th>
-                    <th class="p-2 border-b font-semibold bg-orange-100 text-orange-900 border-l border-slate-300 w-32 text-center">🔥 Popularité</th>
-                    <th class="p-2 border-b font-semibold bg-emerald-100 text-emerald-900 border-x border-slate-300 w-36 text-center">📦 Demande</th>
-                    <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center" onclick="sortTable('t')">Temps ↕</th>
-                    <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center" onclick="sortTable('val')">Val. Base ↕</th>
-                    <th class="p-2 border-b font-semibold">Catégories</th>
-                    <th class="p-2 border-b font-semibold cursor-pointer hover:bg-slate-300 text-center" onclick="sortTable('exp')">Rare Expéd. ↕</th>
-                    <th class="p-2 border-b font-semibold w-full">Ingrédients</th>
-                </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
     </div>
 
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-indigo-500">
-        <div class="flex flex-col md:flex-row justify-between md:items-end mb-4">
-            <div class="mb-4 md:mb-0">
+        <div class="flex flex-col lg:flex-row justify-between lg:items-center mb-6 gap-6">
+            <div>
                 <h2 class="text-2xl font-bold text-slate-800 mb-2">Solveur Stricte (Garantie de Rentabilité)</h2>
-                <ul class="text-slate-600 text-sm list-disc list-inside space-y-1 max-w-3xl">
-                    <li><span class="font-semibold text-emerald-600">Recherche Exhaustive :</span> Ne rate aucun combo. Calcule absolument toutes les combinaisons journalières parfaites de 24h.</li>
-                    <li><span class="font-semibold text-indigo-600">Loi des 8 Stricte :</span> Met à jour la demande en temps réel à chaque fin de journée avant d'entamer le calcul du lendemain.</li>
+                <ul class="text-slate-600 text-sm list-disc list-inside space-y-1">
+                    <li><span class="font-semibold text-emerald-600">Recherche Exhaustive :</span> Calcule toutes les combinaisons journalières parfaites de 24h.</li>
+                    <li><span class="font-semibold text-indigo-600">Loi des 8 Stricte :</span> Met à jour la demande en temps réel à chaque fin de journée.</li>
                 </ul>
 
                 <div class="mt-4 inline-block bg-orange-50 border border-orange-200 rounded p-2">
                     <label class="flex items-center space-x-2 font-semibold text-orange-800 cursor-pointer text-sm">
                         <input type="checkbox" id="allowRareExp" class="cursor-pointer w-4 h-4 accent-orange-600" checked>
-                        <span>Autoriser l'utilisation des éléments rares d'expédition dans les plannings</span>
+                        <span>Autoriser l'utilisation des matériaux d'expédition rares (Alysson, etc.)</span>
                     </label>
                 </div>
             </div>
 
-            <button onclick="generateWeekly()" id="btnGenerate" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105 h-fit text-lg flex items-center justify-center min-w-[300px]">
+            <button onclick="generateWeekly()" id="btnGenerate" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105 h-fit text-lg flex items-center justify-center min-w-[280px]">
                 <span>⚙️ Générer le Planning</span>
             </button>
         </div>
 
-        <div id="solverResults" class="hidden mt-6">
+        <div id="solverResults" class="hidden border-t border-slate-200 pt-8">
             <div id="validityDateBox" class="bg-blue-50 border border-blue-200 text-blue-800 text-sm p-3 rounded-lg text-center mb-6 shadow-sm"></div>
 
             <div class="bg-indigo-900 border border-indigo-700 rounded-lg p-5 text-center mb-8 shadow-xl relative overflow-hidden">
@@ -184,7 +104,7 @@
         { lvl: 12, obj: "Bicarbonate de soude manufacturé", t: 4, val: 36, c1: "Article du quotidien", c2: "Concoction", exp: "Non", ing: "2 x Eau pétillante insulaire | 2 x Sel gemme insulaire" },
         { lvl: 6, obj: "Boucles d'oreilles en croc manufacturées", t: 4, val: 44, c1: "Accessoire", c2: "Animalier", exp: "Non", ing: "1 x Croc d'animal d'élevage | 3 x Sarment insulaire" },
         { lvl: 5, obj: "Bouclier rond en épicéa manufacturé", t: 8, val: 136, c1: "Armure", c2: "En bois", exp: "Oui", ing: "2 x Rondin d'épicéa insulaire | 3 x Minerai de cuivre insulaire | 3 x Pierre insulaire" },
-        { lvl: 17, obj: "Bouillabaisse manufacturée", t: 8, val: 136, c1: "Plat", c2: "Marin", exp: "Non", ing: "2 x Crevette insulaire à grandes pinces | 2 x Coque insulaire | 2 x Calmar insulaire | 2 x Tomate exotique" },
+        { lvl: 7, obj: "Bouillabaisse manufacturée", t: 8, val: 136, c1: "Plat", c2: "Marin", exp: "Non", ing: "2 x Crevette insulaire à grandes pinces | 2 x Coque insulaire | 2 x Calmar insulaire | 2 x Tomate exotique" },
         { lvl: 7, obj: "Breuvage érémitique manufacturé", t: 6, val: 54, c1: "Concoction", c2: "Marin", exp: "Non", ing: "2 x Méduse insulaire | 2 x Palme insulaire | 2 x Sargasse tamamo insulaire" },
         { lvl: 6, obj: "Brosse manufacturée", t: 4, val: 44, c1: "Article du quotidien", c2: "En bois", exp: "Non", ing: "1 x Laine d'animal d'élevage | 3 x Rondin de palmier insulaire" },
         { lvl: 13, obj: "Cadre de fossile manufacturé", t: 6, val: 54, c1: "Animalier", c2: "En céramique", exp: "Non", ing: "3 x Schiste insulaire | 2 x Rondin de palmier insulaire | 1 x Fleur de coton insulaire" },
@@ -255,7 +175,7 @@
         { lvl: 6, obj: "Tunique manufacturée", t: 6, val: 72, c1: "Armure", c2: "Textile", exp: "Non", ing: "2 x Toison d'animal d'élevage | 4 x Sarment insulaire" },
         { lvl: 8, obj: "Vase en porcelaine manufacturé", t: 6, val: 72, c1: "Article du quotidien", c2: "En céramique", exp: "Non", ing: "3 x Granite insulaire | 3 x Quartz insulaire | 2 x Argile insulaire" },
         { lvl: 13, obj: "Verre isolant manufacturé", t: 6, val: 80, c1: "En céramique", c2: "", exp: "Non", ing: "4 x Spectrite insulaire | 4 x Sable insulaire" },
-        { lvl: 17, obj: "Vinaigrette manufacturée", t: 4, val: 52, c1: "Condiment", c2: "", exp: "Non", ing: "2 x Oignon exotique | 1 x Sève insulaire | 1 x Sargasse tamamo insulaire" }
+        { lvl: 7, obj: "Vinaigrette manufacturée", t: 4, val: 52, c1: "Condiment", c2: "", exp: "Non", ing: "2 x Oignon exotique | 1 x Sève insulaire | 1 x Sargasse tamamo insulaire" }
     ];
 
     const RARE_MATS = ["Minerai d'argent insulaire", "Rondin d'épicéa insulaire", "Alysson insulaire", "Requin-marteau insulaire", "Grenat brut insulaire"];
@@ -264,11 +184,8 @@
     const DEM_TIERS = ['Excédentaire', 'En surplus', 'Suffisante', 'Insuffisante', 'Introuvable'];
     const DEM_MULT = [0.6, 0.8, 1.0, 1.3, 1.6];
 
-    const data = rawData.map((item, index) => ({ ...item, id: index }));
-    let currentData = [...data];
     let marketData = {};
-
-    data.forEach(d => marketData[d.id] = { pop: 'Moyenne', dem: 2, evo: '-' });
+    rawData.forEach(d => marketData[d.id || d.obj] = { pop: 'Moyenne', dem: 2, evo: '-' });
 
     function saveSettings() {
         localStorage.setItem('fabriqueRank', document.getElementById('userRank').value);
@@ -276,8 +193,7 @@
     }
 
     function saveToLocalStorage() {
-        const saveObj = { market: marketData };
-        localStorage.setItem('fabriqueSaveFinal', JSON.stringify(saveObj));
+        localStorage.setItem('fabriqueSaveFinal', JSON.stringify({ market: marketData }));
     }
 
     function loadFromLocalStorage() {
@@ -310,7 +226,6 @@
 
     async function initMarketData() {
         loadFromLocalStorage();
-        applyFilters();
 
         try {
             const response = await fetch('market_data.json', { cache: 'no-store' });
@@ -331,16 +246,16 @@
 
                 if (newRawText !== oldRawText) {
                     const weeklyData = JSON.parse(newRawText);
-                    data.forEach(item => {
+                    rawData.forEach(item => {
                         const apiItem = weeklyData[item.obj];
                         if(apiItem) {
-                            marketData[item.id].pop = apiItem.pop;
-                            marketData[item.id].dem = apiItem.dem;
-                            marketData[item.id].evo = apiItem.evo;
+                            marketData[item.obj].pop = apiItem.pop;
+                            marketData[item.obj].dem = apiItem.dem;
+                            marketData[item.obj].evo = apiItem.evo;
                         } else {
-                            marketData[item.id].pop = "Moyenne";
-                            marketData[item.id].dem = 2;
-                            marketData[item.id].evo = "-";
+                            marketData[item.obj].pop = "Moyenne";
+                            marketData[item.obj].dem = 2;
+                            marketData[item.obj].evo = "-";
                         }
                     });
 
@@ -357,132 +272,16 @@
         } catch (error) {
             document.getElementById('lastUpdateText').textContent = "Mode Local";
         }
-        applyFilters();
     }
-
-    const tableBody = document.getElementById('tableBody');
-    const countSpan = document.getElementById('count');
-    const inputs = ['searchObj', 'searchIng', 'minV', 'maxV', 'filterExp', 'cat1', 'cat2', 'filterTime'].map(id => document.getElementById(id));
-    const radios = document.querySelectorAll('input[name="catOp"]');
-
-    const uniqueCategories = [...new Set(data.flatMap(d => [d.c1, d.c2]).filter(Boolean))].sort();
-    function populateSelect(selectEl) {
-        uniqueCategories.forEach(cat => {
-            const opt = document.createElement('option');
-            opt.value = cat; opt.textContent = cat;
-            selectEl.appendChild(opt);
-        });
-    }
-    populateSelect(inputs[5]);
-    populateSelect(inputs[6]);
-
-    window.updateMarket = function(id, type, val) {
-        if(type === 'pop') marketData[id].pop = val;
-        if(type === 'dem') marketData[id].dem = parseInt(val);
-        if(type === 'evo') marketData[id].evo = val;
-        saveToLocalStorage();
-    };
-
-    function render(filteredData) {
-        tableBody.innerHTML = filteredData.map(d => {
-            let m = marketData[d.id];
-            return `
-                <tr class="hover:bg-slate-100 transition-colors">
-                    <td class="p-1 border-b text-center font-bold text-indigo-800 bg-indigo-50 border-r border-slate-200">${d.lvl}</td>
-                    <td class="p-1 border-b font-medium text-slate-900 pl-2">${d.obj}</td>
-                    <td class="p-1 border-b text-center">
-                        <select class="select-market select-pop" onchange="updateMarket(${d.id}, 'pop', this.value)">
-                            <option value="Faible" ${m.pop==='Faible'?'selected':''}>Faible (x0.8)</option>
-                            <option value="Moyenne" ${m.pop==='Moyenne'?'selected':''}>Moyenne (x1.0)</option>
-                            <option value="Élevée" ${m.pop==='Élevée'?'selected':''}>Élevée (x1.2)</option>
-                            <option value="Très élevée" ${m.pop==='Très élevée'?'selected':''}>Très élevée (x1.4)</option>
-                        </select>
-                    </td>
-                    <td class="p-1 border-b text-center">
-                        <select class="select-market select-dem" onchange="updateMarket(${d.id}, 'dem', this.value)">
-                            <option value="0" ${m.dem===0?'selected':''}>Excédentaire (x0.6)</option>
-                            <option value="1" ${m.dem===1?'selected':''}>En surplus (x0.8)</option>
-                            <option value="2" ${m.dem===2?'selected':''}>Suffisante (x1.0)</option>
-                            <option value="3" ${m.dem===3?'selected':''}>Insuffisante (x1.3)</option>
-                            <option value="4" ${m.dem===4?'selected':''}>Introuvable (x1.6)</option>
-                        </select>
-                    </td>
-                    <td class="p-1 border-b text-center font-bold text-slate-700">${d.t}h</td>
-                    <td class="p-1 border-b text-slate-600 font-mono text-center">${d.val}</td>
-                    <td class="p-1 border-b text-xs">
-                        <span class="inline-block bg-slate-200 px-1 py-0.5 rounded mb-1">${d.c1}</span>
-                        ${d.c2 ? `<span class="inline-block bg-slate-100 px-1 py-0.5 rounded italic border">${d.c2}</span>` : ''}
-                    </td>
-                    <td class="p-1 border-b text-center"><span class="${d.exp === 'Oui' ? 'text-orange-600 font-bold bg-orange-100 px-2 py-1 rounded' : 'text-slate-400'}">${d.exp}</span></td>
-                    <td class="p-1 border-b text-[10px] text-slate-500 whitespace-normal min-w-[150px] leading-tight">${d.ing.split(' | ').join('<br>')}</td>
-                </tr>
-            `}).join('');
-        countSpan.textContent = filteredData.length;
-    }
-
-    let sortConfig = { key: null, direction: 1 };
-    function sortTable(key) {
-        if (sortConfig.key === key) sortConfig.direction *= -1;
-        else { sortConfig.key = key; sortConfig.direction = 1; }
-        currentData.sort((a, b) => {
-            let valA = a[key], valB = b[key];
-            if (typeof valA === 'string' && typeof valB === 'string') return valA.localeCompare(valB, 'fr') * sortConfig.direction;
-            return valA < valB ? -1 * sortConfig.direction : (valA > valB ? 1 * sortConfig.direction : 0);
-        });
-        render(currentData);
-    }
-
-    function applyFilters() {
-        const userRank = parseInt(document.getElementById('userRank').value) || 20;
-        const [sObj, sIng, minV, maxV, exp, catA, catB, timeFilter] = inputs.map(i => i?.value.toLowerCase() || "");
-        const catOpEl = document.querySelector('input[name="catOp"]:checked');
-        const op = catOpEl ? catOpEl.value : "AND";
-
-        currentData = data.filter(d => {
-            if (d.lvl > userRank) return false;
-            if (sObj && !d.obj.toLowerCase().includes(sObj)) return false;
-            if (sIng && !d.ing.toLowerCase().includes(sIng)) return false;
-            if (d.val < (parseInt(minV)||0) || d.val > (parseInt(maxV)||9999)) return false;
-            if (exp !== "" && d.exp.toLowerCase() !== exp) return false;
-            if (timeFilter !== "" && d.t != timeFilter) return false;
-
-            if (catA || catB) {
-                const itemCats = [d.c1.toLowerCase(), d.c2.toLowerCase()].filter(Boolean);
-                const hasA = itemCats.includes(catA);
-                const hasB = itemCats.includes(catB);
-                if (catA && catB) {
-                    if (op === "AND" && !(hasA && hasB)) return false;
-                    if (op === "OR" && !(hasA || hasB)) return false;
-                } else if ((catA && !hasA) || (catB && !hasB)) return false;
-            }
-            return true;
-        });
-
-        if (sortConfig.key) {
-            sortConfig.direction *= -1;
-            sortTable(sortConfig.key);
-        } else {
-            render(currentData);
-        }
-    }
-
-    function resetFilters() {
-        inputs.forEach(input => { if(input) input.value = ''; });
-        if(radios[0]) radios[0].checked = true;
-        applyFilters();
-    }
-
-    inputs.forEach(input => { if(input) { input.addEventListener('input', applyFilters); input.addEventListener('change', applyFilters); } });
-    radios.forEach(radio => radio.addEventListener('change', applyFilters));
 
     initMarketData();
 
     // ==========================================
-    // V7: L'ALGORITHME GLOUTON (STABLE & PUISSANT)
+    // V7: L'ALGORITHME GLOUTON
     // ==========================================
 
     function getRealValWithFormula(item, effectiveDemLevel) {
-        let m = marketData[item.id];
+        let m = marketData[item.obj];
         let popMult = POP_MULT[m.pop];
         let demMult = DEM_MULT[Math.max(0, effectiveDemLevel)];
         return Math.floor(item.val * popMult * demMult);
@@ -491,13 +290,21 @@
     function generateWeekly() {
         saveSettings();
 
+        const userRank = parseInt(document.getElementById('userRank').value) || 20;
         const allowRare = document.getElementById('allowRareExp').checked;
-        const activeItems = currentData.filter(d => allowRare || d.exp === 'Non');
+
+        // Le seul filtre restant est le Rang du joueur et l'autorisation des expéditions rares
+        const activeItems = rawData.filter(d => {
+            if (d.lvl > userRank) return false;
+            if (!allowRare && d.exp === 'Oui') return false;
+            return true;
+        });
+
         const maxGroove = parseInt(document.getElementById('maxGroove').value) || 0;
         const btn = document.getElementById('btnGenerate');
 
         if (activeItems.length === 0) {
-            alert("Aucune recette disponible avec les filtres actuels.");
+            alert("Aucune recette disponible à ce niveau.");
             return;
         }
 
@@ -506,10 +313,9 @@
 
         btn.innerHTML = "<span class='animate-spin mr-2'>⏳</span> Calcul du planning parfait...";
 
-        // Laisse l'UI se mettre à jour avant de figer le navigateur
         setTimeout(() => {
             let currentDemands = {};
-            data.forEach(d => currentDemands[d.id] = marketData[d.id].dem);
+            rawData.forEach(d => currentDemands[d.obj] = marketData[d.obj].dem);
 
             let producedCounts = {};
             let currentGlobalGroove = 0;
@@ -517,8 +323,8 @@
 
             const adjacency = {};
             activeItems.forEach(item1 => {
-                adjacency[item1.id] = activeItems.filter(item2 => {
-                    if (item1.id === item2.id) return false;
+                adjacency[item1.obj] = activeItems.filter(item2 => {
+                    if (item1.obj === item2.obj) return false;
                     const cats1 = [item1.c1, item1.c2].filter(Boolean);
                     const cats2 = [item2.c1, item2.c2].filter(Boolean);
                     return cats1.some(c => cats2.includes(c));
@@ -528,14 +334,11 @@
             const weekDays = ['Jour 1', 'Jour 2', 'Jour 3', 'Jour 4', 'Jour 5'];
             let finalPlan = [];
 
-            // Boucle Jour par Jour
             for (let day = 0; day < 5; day++) {
 
-                // Fonction DFS locale (trouve la meilleure combinaison pour CE jour précis)
                 let bestDailySchedule = { gain: -1, path: [], endGroove: currentGlobalGroove, time: 0 };
 
                 function dfs(seq, currentTime, currentGain, groove) {
-                    // Optimisation: on veut des journées pleines de 24h
                     if (currentTime === 24) {
                         if (currentGain > bestDailySchedule.gain) {
                             bestDailySchedule = { gain: currentGain, path: [...seq], endGroove: groove, time: currentTime };
@@ -543,7 +346,7 @@
                         return;
                     }
 
-                    let possibleItems = seq.length === 0 ? activeItems : adjacency[seq[seq.length-1].item.id];
+                    let possibleItems = seq.length === 0 ? activeItems : adjacency[seq[seq.length-1].item.obj];
                     let added = false;
 
                     for (let item of possibleItems) {
@@ -551,7 +354,7 @@
                             added = true;
                             let isCombo = seq.length > 0;
 
-                            let baseVal = getRealValWithFormula(item, currentDemands[item.id]);
+                            let baseVal = getRealValWithFormula(item, currentDemands[item.obj]);
                             let valWithCombo = isCombo ? baseVal * 2 : baseVal;
                             let stepGain = Math.floor(valWithCombo * (1 + groove / 100));
 
@@ -562,7 +365,7 @@
                                 combo: isCombo,
                                 stepGainSingle: stepGain,
                                 currentGroove: groove,
-                                effDem: currentDemands[item.id]
+                                effDem: currentDemands[item.obj]
                             });
 
                             dfs(seq, currentTime + item.t, currentGain + stepGain, newGroove);
@@ -570,7 +373,6 @@
                         }
                     }
 
-                    // Si on ne peut plus rien ajouter mais qu'on a pas fait 24h (rare mais possible avec des filtres stricts)
                     if (!added && currentTime > 0) {
                         const rem = 24 - currentTime;
                         if (rem % 4 === 0 || rem % 6 === 0 || rem % 8 === 0) {
@@ -581,33 +383,22 @@
                     }
                 }
 
-                // On lance la recherche pour le jour actuel
                 dfs([], 0, 0, currentGlobalGroove);
 
-                // Si on a trouvé un planning
                 if (bestDailySchedule.gain > -1) {
-                    // 1. On sauvegarde le résultat pour l'affichage
                     finalPlan.push({ dayName: weekDays[day], schedule: bestDailySchedule });
-
-                    // 2. On encaisse l'argent (x3 Fabriques)
                     totalWeeklyGain += (bestDailySchedule.gain * 3);
-
-                    // 3. On met à jour la tension (Groove) globale pour le lendemain
                     currentGlobalGroove = bestDailySchedule.endGroove;
 
-                    // 4. LA RÈGLE DES 8 : On met à jour l'offre et la demande pour le lendemain
                     for (let step of bestDailySchedule.path) {
                         let item = step.item;
-                        let addedUnits = (step.combo ? 2 : 1) * 3; // 3 fabriques
+                        let addedUnits = (step.combo ? 2 : 1) * 3;
+                        producedCounts[item.obj] = (producedCounts[item.obj] || 0) + addedUnits;
 
-                        producedCounts[item.id] = (producedCounts[item.id] || 0) + addedUnits;
-
-                        // On recalcule la nouvelle demande : baisse d'un cran tous les 8 objets
-                        let drops = Math.floor(producedCounts[item.id] / 8);
-                        currentDemands[item.id] = Math.max(0, marketData[item.id].dem - drops);
+                        let drops = Math.floor(producedCounts[item.obj] / 8);
+                        currentDemands[item.obj] = Math.max(0, marketData[item.obj].dem - drops);
                     }
                 } else {
-                    // Journée vide impossible à remplir
                     finalPlan.push({ dayName: weekDays[day], schedule: { gain: 0, path: [], endGroove: currentGlobalGroove, time: 0 } });
                 }
             }
@@ -648,7 +439,7 @@
             if (s.path.length === 0) {
                 return `<div class="bg-white rounded-lg border border-slate-300 p-4 shadow-sm">
                                 <h3 class="font-bold text-xl text-slate-800">${day.dayName}</h3>
-                                <div class="text-slate-500 italic mt-2">Aucun planning valide trouvé pour cette journée avec vos filtres.</div>
+                                <div class="text-slate-500 italic mt-2">Aucun planning valide trouvé pour cette journée. Vérifiez votre niveau d'île.</div>
                             </div>`;
             }
 
@@ -658,7 +449,7 @@
                 let grooveTag = `<span class="text-[9px] font-black text-indigo-500 ml-1" title="Tension à l'heure du craft">T:${step.currentGroove}</span>`;
 
                 let dropWarning = '';
-                if(step.effDem < marketData[step.item.id].dem) {
+                if(step.effDem < marketData[step.item.obj].dem) {
                     dropWarning = `<span class="text-[9px] text-red-500 font-black ml-1" title="Alerte Règle des 8: La demande a chuté car vous avez expédié plus de 8 exemplaires de cet objet dans la semaine.">📉</span>`;
                 }
 
