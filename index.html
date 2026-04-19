@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fabrique de l'Île - Simulateur Hebdomadaire Expert V7 Épuré</title>
+    <title>Fabrique de l'Île - Simulateur Hebdomadaire Expert V7.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-8">
@@ -12,7 +12,7 @@
     <div class="bg-white shadow-xl rounded-lg p-6 border-t-4 border-slate-700">
         <header class="flex flex-col md:flex-row justify-between items-center md:items-end gap-6">
             <div>
-                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v7.1</span></h1>
+                <h1 class="text-3xl font-bold text-slate-800">Fabrique de l'Île <span class="text-indigo-600 text-lg">v7.2</span></h1>
                 <p class="text-slate-500">Moteur Économique Journalier (Version Épurée)</p>
             </div>
             <div class="flex flex-wrap justify-center items-center gap-3">
@@ -31,9 +31,14 @@
                         <input type="number" id="userRank" min="1" max="20" value="20" class="w-12 text-sm border-b border-indigo-300 outline-none font-bold text-indigo-700 text-center bg-transparent" onchange="saveSettings();">
                     </div>
                     <div class="w-px h-6 bg-indigo-200"></div>
+                    <div class="flex flex-col items-center" title="Le niveau d'amélioration de vos Fabriques (1 à 5). Multiplie les gains jusqu'à +40%.">
+                        <label class="text-[10px] font-bold text-indigo-800 uppercase tracking-wide">Niv. Fabriques</label>
+                        <input type="number" id="workshopRank" min="1" max="5" value="5" class="w-16 text-sm border-b border-indigo-300 outline-none font-bold text-indigo-700 text-center bg-transparent" onchange="saveSettings();">
+                    </div>
+                    <div class="w-px h-6 bg-indigo-200"></div>
                     <div class="flex flex-col items-center" title="La limite maximale de Tension de votre île (dépend de vos monuments construits).">
                         <label class="text-[10px] font-bold text-indigo-800 uppercase tracking-wide">Tension Max</label>
-                        <input type="number" id="maxGroove" min="0" max="50" value="45" class="w-12 text-sm border-b border-indigo-300 outline-none font-bold text-indigo-700 text-center bg-transparent" onchange="saveSettings();">
+                        <input type="number" id="maxGroove" min="0" max="50" value="45" class="w-16 text-sm border-b border-indigo-300 outline-none font-bold text-indigo-700 text-center bg-transparent" onchange="saveSettings();">
                     </div>
                 </div>
 
@@ -189,6 +194,7 @@
 
     function saveSettings() {
         localStorage.setItem('fabriqueRank', document.getElementById('userRank').value);
+        localStorage.setItem('workshopRank', document.getElementById('workshopRank').value);
         localStorage.setItem('maxGroove', document.getElementById('maxGroove').value);
     }
 
@@ -199,6 +205,9 @@
     function loadFromLocalStorage() {
         const savedRank = localStorage.getItem('fabriqueRank');
         if (savedRank) document.getElementById('userRank').value = savedRank;
+
+        const savedWsRank = localStorage.getItem('workshopRank');
+        if (savedWsRank) document.getElementById('workshopRank').value = savedWsRank;
 
         const savedGroove = localStorage.getItem('maxGroove');
         if (savedGroove) document.getElementById('maxGroove').value = savedGroove;
@@ -291,9 +300,13 @@
         saveSettings();
 
         const userRank = parseInt(document.getElementById('userRank').value) || 20;
+        const workshopRank = parseInt(document.getElementById('workshopRank').value) || 5;
         const allowRare = document.getElementById('allowRareExp').checked;
 
-        // Le seul filtre restant est le Rang du joueur et l'autorisation des expéditions rares
+        // Calcul du multiplicateur lié au niveau du bâtiment des Fabriques (Rang 1 à 5)
+        // Rang 1 = 1.0, Rang 2 = 1.1, Rang 3 = 1.2, Rang 4 = 1.3, Rang 5 = 1.4
+        const wsMult = 1 + (workshopRank - 1) * 0.1;
+
         const activeItems = rawData.filter(d => {
             if (d.lvl > userRank) return false;
             if (!allowRare && d.exp === 'Oui') return false;
@@ -354,8 +367,10 @@
                             added = true;
                             let isCombo = seq.length > 0;
 
+                            // Mathématiques exactes de FFXIV
                             let baseVal = getRealValWithFormula(item, currentDemands[item.obj]);
-                            let valWithCombo = isCombo ? baseVal * 2 : baseVal;
+                            let valWithWs = Math.floor(baseVal * wsMult);
+                            let valWithCombo = isCombo ? valWithWs * 2 : valWithWs;
                             let stepGain = Math.floor(valWithCombo * (1 + groove / 100));
 
                             let newGroove = isCombo ? Math.min(maxGroove, groove + 3) : groove;
